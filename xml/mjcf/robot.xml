@@ -1,0 +1,164 @@
+<?xml version="1.0" ?>
+<!-- Generated using onshape-to-robot -->
+<!-- Onshape https://cad.onshape.com/documents/06d928fea4a7cf6e33c0c73c/w/97e1d5e1a60ad8212032749b/e/6d6b4d03c99f20bed0bb80d4 -->
+<mujoco model="pydm">
+  <compiler angle="radian" meshdir="assets" autolimits="true"/>
+  <default>
+    <default class="pydm">
+      <joint frictionloss="0.1" armature="0.005"/>
+      <position kp="50" dampratio="1"/>
+      <default class="visual">
+        <geom type="mesh" contype="0" conaffinity="0" group="2"/>
+      </default>
+      <default class="collision">
+        <geom group="3"/>
+      </default>
+    </default>
+  </default>
+  <worldbody>
+    <!-- Link broad -->
+    <body name="broad" pos="0 0 0" quat="1 0 0 0" childclass="pydm">
+      <inertial pos="0 0 0" mass="1" fullinertia="1e-09 1e-09 1e-09 0 0 0"/>
+      <!-- Part dm_4340_3d_1_1_1_1_4 -->
+      <geom type="mesh" class="visual" pos="0 0 0.05325" quat="0.707107 -0.707107 0 0" mesh="dm_4340_3d_1_1_1_1_4" material="dm_4340_3d_1_1_1_1_4_material"/>
+      <geom type="mesh" class="collision" pos="0 0 0.05325" quat="0.707107 -0.707107 0 0" mesh="dm_4340_3d_1_1_1_1_4" material="dm_4340_3d_1_1_1_1_4_material"/>
+      <!-- Part broad -->
+      <geom type="mesh" class="visual" pos="-0.0285 -0.0285 -0.004" quat="0.707107 -0 0.707107 -0" mesh="broad" material="broad_material"/>
+      <geom type="mesh" class="collision" pos="-0.0285 -0.0285 -0.004" quat="0.707107 -0 0.707107 -0" mesh="broad" material="broad_material"/>
+      <!-- Part 4310__ver_b0001_1_1_1_1_4 -->
+      <geom type="mesh" class="visual" pos="0 0 0.05325" quat="0.707107 -0.707107 0 0" mesh="4310__ver_b0001_1_1_1_1_4" material="4310__ver_b0001_1_1_1_1_4_material"/>
+      <geom type="mesh" class="collision" pos="0 0 0.05325" quat="0.707107 -0.707107 0 0" mesh="4310__ver_b0001_1_1_1_1_4" material="4310__ver_b0001_1_1_1_1_4_material"/>
+      <!-- Link l_link -->
+      <body name="l_link" pos="-0 -0 0.0533" quat="0 0.707107 -0.707107 -0">
+        <!-- Joint from broad to l_link -->
+        <joint axis="0 0 1" name="base" type="hinge" range="-3.141592653589793 3.141592653589793"/>
+        <inertial pos="0 0 0" mass="1" fullinertia="1e-09 1e-09 1e-09 0 0 0"/>
+        <!-- Part l_link -->
+        <geom type="mesh" class="visual" pos="-0.0285 -0.0305 -0.004" quat="0.5 -0.5 -0.5 -0.5" mesh="l_link" material="l_link_material"/>
+        <geom type="mesh" class="collision" pos="-0.0285 -0.0305 -0.004" quat="0.5 -0.5 -0.5 -0.5" mesh="l_link" material="l_link_material"/>
+        <!-- Part dm_4340_3d_1_1_1_1_4_2 -->
+        <geom type="mesh" class="visual" pos="-0 0.02275 -0.0425" quat="0 1 -0 -0" mesh="dm_4340_3d_1_1_1_1_4" material="dm_4340_3d_1_1_1_1_4_material"/>
+        <geom type="mesh" class="collision" pos="-0 0.02275 -0.0425" quat="0 1 -0 -0" mesh="dm_4340_3d_1_1_1_1_4" material="dm_4340_3d_1_1_1_1_4_material"/>
+        <!-- Part 4310__ver_b0001_1_1_1_1_4_2 -->
+        <geom type="mesh" class="visual" pos="-0 0.02275 -0.0425" quat="0 1 -0 -0" mesh="4310__ver_b0001_1_1_1_1_4" material="4310__ver_b0001_1_1_1_1_4_material"/>
+        <geom type="mesh" class="collision" pos="-0 0.02275 -0.0425" quat="0 1 -0 -0" mesh="4310__ver_b0001_1_1_1_1_4" material="4310__ver_b0001_1_1_1_1_4_material"/>
+        <!-- Link long_link -->
+        <body name="long_link" pos="-0 0.0228 -0.0425" quat="0.707107 0.707107 -0 0">
+          <!-- Joint from l_link to long_link -->
+          <joint axis="0 0 1" name="shoulder" type="hinge" range="-2.8619929615499573 0.2795996920398358"/>
+          <inertial pos="0 0 0" mass="1" fullinertia="1e-09 1e-09 1e-09 0 0 0"/>
+          <!-- Part long_link -->
+          <geom type="mesh" class="visual" pos="0.166938 -0.01828 -0" quat="0.139345 0 -0 0.990244" mesh="long_link" material="long_link_material"/>
+          <geom type="mesh" class="collision" pos="0.166938 -0.01828 -0" quat="0.139345 0 -0 0.990244" mesh="long_link" material="long_link_material"/>
+          <!-- Link dm_4340_3d_1_1_1_1_4 -->
+          <body name="dm_4340_3d_1_1_1_1_4" pos="0.13168 -0.037808 -0" quat="0 -0.139345 -0.990244 -0">
+            <!-- Joint from long_link to dm_4340_3d_1_1_1_1_4 -->
+            <joint axis="0 0 1" name="elbow" type="hinge" range="-2.9920829066561154 0.1495097469336777"/>
+            <inertial pos="0 0 0" mass="1" fullinertia="1e-09 1e-09 1e-09 0 0 0"/>
+            <!-- Part l_link_2 -->
+            <geom type="mesh" class="visual" pos="-0.0440869 -0.0879139 -0.0573" quat="0.705132 0.0528105 0.705132 -0.0528105" mesh="l_link" material="l_link_material"/>
+            <geom type="mesh" class="collision" pos="-0.0440869 -0.0879139 -0.0573" quat="0.705132 0.0528105 0.705132 -0.0528105" mesh="l_link" material="l_link_material"/>
+            <!-- Part 4310__ver_b0001_1_1_1_1_4_3 -->
+            <geom type="mesh" class="visual" pos="-0 0 -5e-05" quat="0.705132 -0.705132 0.0528105 -0.0528105" mesh="4310__ver_b0001_1_1_1_1_4" material="4310__ver_b0001_1_1_1_1_4_material"/>
+            <geom type="mesh" class="collision" pos="-0 0 -5e-05" quat="0.705132 -0.705132 0.0528105 -0.0528105" mesh="4310__ver_b0001_1_1_1_1_4" material="4310__ver_b0001_1_1_1_1_4_material"/>
+            <!-- Part short_link -->
+            <geom type="mesh" class="visual" pos="0.0142549 -0.0967021 -0.0533" quat="0.757942 0 -0 0.652321" mesh="short_link" material="short_link_material"/>
+            <geom type="mesh" class="collision" pos="0.0142549 -0.0967021 -0.0533" quat="0.757942 0 -0 0.652321" mesh="short_link" material="short_link_material"/>
+            <!-- Part 4310__3d_20240814_1 -->
+            <geom type="mesh" class="visual" pos="0.00514883 -0.0665215 -0.0189736" quat="0.535946 -0.461261 0.535946 0.461261" mesh="4310__3d_20240814_1" material="4310__3d_20240814_1_material"/>
+            <geom type="mesh" class="collision" pos="0.00514883 -0.0665215 -0.0189736" quat="0.535946 -0.461261 0.535946 0.461261" mesh="4310__3d_20240814_1" material="4310__3d_20240814_1_material"/>
+            <!-- Part dm_4340_3d_1_1_1_1_4_3 -->
+            <geom type="mesh" class="visual" pos="-0 0 -5e-05" quat="0.705132 -0.705132 0.0528105 -0.0528105" mesh="dm_4340_3d_1_1_1_1_4" material="dm_4340_3d_1_1_1_1_4_material"/>
+            <geom type="mesh" class="collision" pos="-0 0 -5e-05" quat="0.705132 -0.705132 0.0528105 -0.0528105" mesh="dm_4340_3d_1_1_1_1_4" material="dm_4340_3d_1_1_1_1_4_material"/>
+            <!-- Part 4310__3d_20240814_1_2 -->
+            <geom type="mesh" class="visual" pos="0.00514883 -0.0665215 -0.0189736" quat="0.535946 -0.461261 0.535946 0.461261" mesh="4310__3d_20240814_1__2" material="4310__3d_20240814_1__2_material"/>
+            <geom type="mesh" class="collision" pos="0.00514883 -0.0665215 -0.0189736" quat="0.535946 -0.461261 0.535946 0.461261" mesh="4310__3d_20240814_1__2" material="4310__3d_20240814_1__2_material"/>
+            <!-- Part 4310__3d_20240814_1_3 -->
+            <geom type="mesh" class="visual" pos="0.00514883 -0.0665215 -0.0189736" quat="0.535946 -0.461261 0.535946 0.461261" mesh="4310__3d_20240814_1__3" material="4310__3d_20240814_1__3_material"/>
+            <geom type="mesh" class="collision" pos="0.00514883 -0.0665215 -0.0189736" quat="0.535946 -0.461261 0.535946 0.461261" mesh="4310__3d_20240814_1__3" material="4310__3d_20240814_1__3_material"/>
+            <!-- Link l_link_2 -->
+            <body name="l_link_2" pos="0.00564326 -0.066596 -0.0189736" quat="0.0528105 -0.705132 0.0528105 0.705132">
+              <!-- Joint from dm_4340_3d_1_1_1_1_4 to l_link_2 -->
+              <joint axis="0 0 1" name="wrist_1" type="hinge" range="-3.14159265358957 3.141592653590016"/>
+              <inertial pos="0 0 0" mass="1" fullinertia="1e-09 1e-09 1e-09 0 0 0"/>
+              <!-- Part 4310__3d_20240814_1_4 -->
+              <geom type="mesh" class="visual" pos="-0.015 -1.24934e-05 -0.0623264" quat="0.5 -0.5 -0.5 -0.5" mesh="4310__3d_20240814_1" material="4310__3d_20240814_1_material"/>
+              <geom type="mesh" class="collision" pos="-0.015 -1.24934e-05 -0.0623264" quat="0.5 -0.5 -0.5 -0.5" mesh="4310__3d_20240814_1" material="4310__3d_20240814_1_material"/>
+              <!-- Part l_link_3 -->
+              <geom type="mesh" class="visual" pos="0.0305 -0.0285 -0.024" quat="0.707107 0 -0.707107 -0" mesh="l_link" material="l_link_material"/>
+              <geom type="mesh" class="collision" pos="0.0305 -0.0285 -0.024" quat="0.707107 0 -0.707107 -0" mesh="l_link" material="l_link_material"/>
+              <!-- Part 4310__3d_20240814_1_5 -->
+              <geom type="mesh" class="visual" pos="-0.015 -1.24934e-05 -0.0623264" quat="0.5 -0.5 -0.5 -0.5" mesh="4310__3d_20240814_1__2" material="4310__3d_20240814_1__2_material"/>
+              <geom type="mesh" class="collision" pos="-0.015 -1.24934e-05 -0.0623264" quat="0.5 -0.5 -0.5 -0.5" mesh="4310__3d_20240814_1__2" material="4310__3d_20240814_1__2_material"/>
+              <!-- Part link_cylinder -->
+              <geom type="mesh" class="visual" pos="-0.0285 0.0305 -0" quat="0.5 0.5 0.5 -0.5" mesh="link_cylinder" material="link_cylinder_material"/>
+              <geom type="mesh" class="collision" pos="-0.0285 0.0305 -0" quat="0.5 0.5 0.5 -0.5" mesh="link_cylinder" material="link_cylinder_material"/>
+              <!-- Part 4310__3d_20240814_1_6 -->
+              <geom type="mesh" class="visual" pos="-0.015 -1.24934e-05 -0.0623264" quat="0.5 -0.5 -0.5 -0.5" mesh="4310__3d_20240814_1__3" material="4310__3d_20240814_1__3_material"/>
+              <geom type="mesh" class="collision" pos="-0.015 -1.24934e-05 -0.0623264" quat="0.5 -0.5 -0.5 -0.5" mesh="4310__3d_20240814_1__3" material="4310__3d_20240814_1__3_material"/>
+              <!-- Link l_link_3 -->
+              <body name="l_link_3" pos="-0.0155 -1.24934e-05 -0.0623264" quat="0.702983 0.076259 0.702983 0.076259">
+                <!-- Joint from l_link_2 to l_link_3 -->
+                <joint axis="0 0 1" name="wrist_2" type="hinge" range="-1.9614427264060919 1.5292157775825672"/>
+                <inertial pos="0 0 0" mass="1" fullinertia="1e-09 1e-09 1e-09 0 0 0"/>
+                <!-- Part l_link_4 -->
+                <geom type="mesh" class="visual" pos="0.0385 -0.0285 0" quat="1 0 -0 0" mesh="l_link" material="l_link_material"/>
+                <geom type="mesh" class="collision" pos="0.0385 -0.0285 0" quat="1 0 -0 0" mesh="l_link" material="l_link_material"/>
+                <!-- Part 4310__3d_20240814_1_7 -->
+                <geom type="mesh" class="visual" pos="0.088 -0.000173555 0.0305125" quat="0 0.707107 -0.707107 -0" mesh="4310__3d_20240814_1__3" material="4310__3d_20240814_1__3_material"/>
+                <geom type="mesh" class="collision" pos="0.088 -0.000173555 0.0305125" quat="0 0.707107 -0.707107 -0" mesh="4310__3d_20240814_1__3" material="4310__3d_20240814_1__3_material"/>
+                <!-- Part 4310__3d_20240814_1_8 -->
+                <geom type="mesh" class="visual" pos="0.088 -0.000173555 0.0305125" quat="0 0.707107 -0.707107 -0" mesh="4310__3d_20240814_1__2" material="4310__3d_20240814_1__2_material"/>
+                <geom type="mesh" class="collision" pos="0.088 -0.000173555 0.0305125" quat="0 0.707107 -0.707107 -0" mesh="4310__3d_20240814_1__2" material="4310__3d_20240814_1__2_material"/>
+                <!-- Part 4310__3d_20240814_1_9 -->
+                <geom type="mesh" class="visual" pos="0.088 -0.000173555 0.0305125" quat="0 0.707107 -0.707107 -0" mesh="4310__3d_20240814_1" material="4310__3d_20240814_1_material"/>
+                <geom type="mesh" class="collision" pos="0.088 -0.000173555 0.0305125" quat="0 0.707107 -0.707107 -0" mesh="4310__3d_20240814_1" material="4310__3d_20240814_1_material"/>
+                <!-- Link l_link_4 -->
+                <body name="l_link_4" pos="0.0885 -0.000173555 0.0305125" quat="0.707107 -0 -0.707107 0">
+                  <site name="ee" pos="0 -0.03 -0.07" size="0.005" rgba="1 0 0 1"/>
+                  <!-- Joint from l_link_3 to l_link_4 -->
+                  <joint axis="0 0 1" name="wrist_3" type="hinge" range="-3.1415926535897443 3.141592653589842"/>
+                  <inertial pos="0 0 0" mass="1" fullinertia="1e-09 1e-09 1e-09 0 0 0"/>
+                  <!-- Part l_link_5 -->
+                  <geom type="mesh" class="visual" pos="-0.0285 -0.0305 -0.004" quat="0.5 -0.5 -0.5 -0.5" mesh="l_link" material="l_link_material"/>
+                  <geom type="mesh" class="collision" pos="-0.0285 -0.0305 -0.004" quat="0.5 -0.5 -0.5 -0.5" mesh="l_link" material="l_link_material"/>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+  <asset>
+    <mesh file="long_link.stl"/>
+    <mesh file="4310__3d_20240814_1__2.stl"/>
+    <mesh file="link_cylinder.stl"/>
+    <mesh file="dm_4340_3d_1_1_1_1_4.stl"/>
+    <mesh file="short_link.stl"/>
+    <mesh file="broad.stl"/>
+    <mesh file="4310__3d_20240814_1__3.stl"/>
+    <mesh file="4310__3d_20240814_1.stl"/>
+    <mesh file="4310__ver_b0001_1_1_1_1_4.stl"/>
+    <mesh file="l_link.stl"/>
+    <material name="dm_4340_3d_1_1_1_1_4_material" rgba="0.917647 0.917647 0.917647 1"/>
+    <material name="broad_material" rgba="0.615686 0.811765 0.929412 1"/>
+    <material name="4310__ver_b0001_1_1_1_1_4_material" rgba="0.768627 0.886275 0.952941 1"/>
+    <material name="l_link_material" rgba="0.615686 0.811765 0.929412 1"/>
+    <material name="long_link_material" rgba="0.615686 0.811765 0.929412 1"/>
+    <material name="short_link_material" rgba="0.615686 0.811765 0.929412 1"/>
+    <material name="4310__3d_20240814_1_material" rgba="0.231373 0.380392 0.705882 1"/>
+    <material name="4310__3d_20240814_1__2_material" rgba="0.768627 0.886275 0.952941 1"/>
+    <material name="4310__3d_20240814_1__3_material" rgba="0.647059 0.647059 0.647059 1"/>
+    <material name="link_cylinder_material" rgba="0.615686 0.811765 0.929412 1"/>
+  </asset>
+  <actuator>
+    <position class="pydm" name="base" joint="base" inheritrange="1"/>
+    <position class="pydm" name="shoulder" joint="shoulder" inheritrange="1"/>
+    <position class="pydm" name="elbow" joint="elbow" inheritrange="1"/>
+    <position class="pydm" name="wrist_1" joint="wrist_1" inheritrange="1"/>
+    <position class="pydm" name="wrist_2" joint="wrist_2" inheritrange="1"/>
+    <position class="pydm" name="wrist_3" joint="wrist_3" inheritrange="1"/>
+  </actuator>
+  <equality/>
+</mujoco>

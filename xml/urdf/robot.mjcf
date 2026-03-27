@@ -1,0 +1,145 @@
+<mujoco model="pyarmx">
+  <default>
+    <default class="robot">
+      <default class="motor">
+        <joint />
+        <motor />
+      </default>
+      <default class="visual">
+        <geom material="visualgeom" contype="0" conaffinity="0" group="2" />
+      </default>
+      <default class="collision">
+        <geom material="collision_material" condim="3" contype="0" conaffinity="1" priority="1" group="1" solref="0.005 1" solimp="0.99 0.999 1e-05" friction="1 0.01 0.01" />
+      </default>
+    </default>
+  </default>
+
+  <compiler angle="radian" />
+
+  <asset>
+    <material name="dm_4340_3d_1_1_1_1_4_material" rgba="0.917647 0.917647 0.917647 1" />
+    <material name="broad_material" rgba="0.615686 0.811765 0.929412 1" />
+    <material name="4310__ver_b0001_1_1_1_1_4_material" rgba="0.768627 0.886275 0.952941 1" />
+    <material name="4310__3d_20240814_1_material" rgba="0.231373 0.380392 0.705882 1" />
+    <material name="4310__3d_20240814_1_3_material" rgba="0.647059 0.647059 0.647059 1" />
+    <material name="default_material" rgba="0.7 0.7 0.7 1" />
+    <material name="collision_material" rgba="1.0 0.28 0.1 0.9" />
+    <mesh name="dm_4340_3d_1_1_1_1_4.stl" file="package://assets/dm_4340_3d_1_1_1_1_4.stl" />
+    <mesh name="broad.stl" file="package://assets/broad.stl" />
+    <mesh name="4310__ver_b0001_1_1_1_1_4.stl" file="package://assets/4310__ver_b0001_1_1_1_1_4.stl" />
+    <mesh name="l_link.stl" file="package://assets/l_link.stl" />
+    <mesh name="long_link.stl" file="package://assets/long_link.stl" />
+    <mesh name="short_link.stl" file="package://assets/short_link.stl" />
+    <mesh name="4310__3d_20240814_1.stl" file="package://assets/4310__3d_20240814_1.stl" />
+    <mesh name="4310__3d_20240814_1__2.stl" file="package://assets/4310__3d_20240814_1__2.stl" />
+    <mesh name="4310__3d_20240814_1__3.stl" file="package://assets/4310__3d_20240814_1__3.stl" />
+    <mesh name="link_cylinder.stl" file="package://assets/link_cylinder.stl" />
+  </asset>
+
+  <worldbody>
+    <body name="broad" pos="0.00000000 0.00000000 0.00400000" quat="1 0 0 0" childclass="robot">
+      <freejoint name="floating_base" />
+      <geom name="broad_collision_0" pos="0 0 0.05325" quat="0.7071054825112363 -0.7071080798594735 -0.0 0.0" type="mesh" mesh="dm_4340_3d_1_1_1_1_4.stl" class="collision" />
+      <geom name="broad_collision_1" pos="-0.0285 -0.0285 -0.004" quat="0.7071054825112363 -0.0 0.7071080798594735 0.0" type="mesh" mesh="broad.stl" class="collision" />
+      <geom name="broad_collision_2" pos="0 0 0.05325" quat="0.7071054825112363 -0.7071080798594735 -0.0 0.0" type="mesh" mesh="4310__ver_b0001_1_1_1_1_4.stl" class="collision" />
+      <geom name="broad_visual_0" pos="0 0 0.05325" quat="0.7071054825112363 -0.7071080798594735 -0.0 0.0" material="dm_4340_3d_1_1_1_1_4_material" type="mesh" mesh="dm_4340_3d_1_1_1_1_4.stl" class="visual" />
+      <geom name="broad_visual_1" pos="-0.0285 -0.0285 -0.004" quat="0.7071054825112363 -0.0 0.7071080798594735 0.0" material="broad_material" type="mesh" mesh="broad.stl" class="visual" />
+      <geom name="broad_visual_2" pos="0 0 0.05325" quat="0.7071054825112363 -0.7071080798594735 -0.0 0.0" material="4310__ver_b0001_1_1_1_1_4_material" type="mesh" mesh="4310__ver_b0001_1_1_1_1_4.stl" class="visual" />
+      <body name="l_link" pos="-0 -0 0.0533" quat="9.381839456086127e-07 0.7071054825106139 -0.7071080798588512 -9.381873917569988e-07">
+        <joint name="base" type="hinge" ref="0.0" class="motor" range="-3.14159 3.14159" axis="0 0 1" />
+        <inertial pos="0 0 0" quat="1.0 0.0 0.0 0.0" mass="1e-09" diaginertia="1e-09 1e-09 1e-09" />
+        <geom name="l_link_collision_0" pos="-0.0285 -0.0305 -0.004" quat="0.4999981633974483 -0.49999999999662686 -0.49999999999662686 -0.5000018366025516" type="mesh" mesh="l_link.stl" class="collision" />
+        <geom name="l_link_collision_1" pos="-0 0.02275 -0.0425" quat="1.3267948966775328e-06 -0.9999999999991198 -0.0 0.0" type="mesh" mesh="dm_4340_3d_1_1_1_1_4.stl" class="collision" />
+        <geom name="l_link_collision_2" pos="-0 0.02275 -0.0425" quat="1.3267948966775328e-06 -0.9999999999991198 -0.0 0.0" type="mesh" mesh="4310__ver_b0001_1_1_1_1_4.stl" class="collision" />
+        <geom name="l_link_visual_0" pos="-0.0285 -0.0305 -0.004" quat="0.4999981633974483 -0.49999999999662686 -0.49999999999662686 -0.5000018366025516" material="broad_material" type="mesh" mesh="l_link.stl" class="visual" />
+        <geom name="l_link_visual_1" pos="-0 0.02275 -0.0425" quat="1.3267948966775328e-06 -0.9999999999991198 -0.0 0.0" material="dm_4340_3d_1_1_1_1_4_material" type="mesh" mesh="dm_4340_3d_1_1_1_1_4.stl" class="visual" />
+        <geom name="l_link_visual_2" pos="-0 0.02275 -0.0425" quat="1.3267948966775328e-06 -0.9999999999991198 -0.0 0.0" material="4310__ver_b0001_1_1_1_1_4_material" type="mesh" mesh="4310__ver_b0001_1_1_1_1_4.stl" class="visual" />
+        <body name="long_link" pos="-0 0.0228 -0.0425" quat="0.7071054825112363 0.7071080798594735 0.0 0.0">
+          <joint name="shoulder" type="hinge" ref="0.0" class="motor" range="-2.86199 0.2796" axis="0 0 1" />
+          <inertial pos="0 0 0" quat="1.0 0.0 0.0 0.0" mass="1e-09" diaginertia="1e-09 1e-09 1e-09" />
+          <geom name="long_link_collision" pos="0.166938 -0.01828 -0" quat="0.13934638250586237 0.0 -0.0 0.9902437001478626" type="mesh" mesh="long_link.stl" class="collision" />
+          <geom name="long_link_visual" pos="0.166938 -0.01828 -0" quat="0.13934638250586237 0.0 -0.0 0.9902437001478626" material="broad_material" type="mesh" mesh="long_link.stl" class="visual" />
+          <body name="dm_4340_3d_1_1_1_1_4" pos="0.13168 -0.037808 -0" quat="1.8488406917925363e-07 0.13934638250573972 0.9902437001469909 1.3138502878232612e-06">
+            <joint name="elbow" type="hinge" ref="0.0" class="motor" range="-2.99208 0.14951" axis="0 0 1" />
+            <inertial pos="0 0 0" quat="1.0 0.0 0.0 0.0" mass="1e-09" diaginertia="1e-09 1e-09 1e-09" />
+            <geom name="dm_4340_3d_1_1_1_1_4_collision_0" pos="-0.0440869 -0.0879139 -0.0573" quat="0.7051306401092375 0.05281045139539335 0.7051332302034603 -0.0528106453793692" type="mesh" mesh="l_link.stl" class="collision" />
+            <geom name="dm_4340_3d_1_1_1_1_4_collision_1" pos="-0 0 -5e-05" quat="0.7051306401092375 -0.7051332302034603 0.0528106453793692 -0.05281045139539335" type="mesh" mesh="4310__ver_b0001_1_1_1_1_4.stl" class="collision" />
+            <geom name="dm_4340_3d_1_1_1_1_4_collision_2" pos="0.0142549 -0.0967021 -0.0533" quat="0.7579412854886068 0.0 -0.0 0.652322778808067" type="mesh" mesh="short_link.stl" class="collision" />
+            <geom name="dm_4340_3d_1_1_1_1_4_collision_3" pos="0.00514883 -0.0665215 -0.0189736" quat="0.535944438390608 -0.4612610132621487 0.5359464070280698 0.46126270757156834" type="mesh" mesh="4310__3d_20240814_1.stl" class="collision" />
+            <geom name="dm_4340_3d_1_1_1_1_4_collision_4" pos="-0 0 -5e-05" quat="0.7051306401092375 -0.7051332302034603 0.0528106453793692 -0.05281045139539335" type="mesh" mesh="dm_4340_3d_1_1_1_1_4.stl" class="collision" />
+            <geom name="dm_4340_3d_1_1_1_1_4_collision_5" pos="0.00514883 -0.0665215 -0.0189736" quat="0.535944438390608 -0.4612610132621487 0.5359464070280698 0.46126270757156834" type="mesh" mesh="4310__3d_20240814_1__2.stl" class="collision" />
+            <geom name="dm_4340_3d_1_1_1_1_4_collision_6" pos="0.00514883 -0.0665215 -0.0189736" quat="0.535944438390608 -0.4612610132621487 0.5359464070280698 0.46126270757156834" type="mesh" mesh="4310__3d_20240814_1__3.stl" class="collision" />
+            <geom name="dm_4340_3d_1_1_1_1_4_visual_0" pos="-0.0440869 -0.0879139 -0.0573" quat="0.7051306401092375 0.05281045139539335 0.7051332302034603 -0.0528106453793692" material="broad_material" type="mesh" mesh="l_link.stl" class="visual" />
+            <geom name="dm_4340_3d_1_1_1_1_4_visual_1" pos="-0 0 -5e-05" quat="0.7051306401092375 -0.7051332302034603 0.0528106453793692 -0.05281045139539335" material="4310__ver_b0001_1_1_1_1_4_material" type="mesh" mesh="4310__ver_b0001_1_1_1_1_4.stl" class="visual" />
+            <geom name="dm_4340_3d_1_1_1_1_4_visual_2" pos="0.0142549 -0.0967021 -0.0533" quat="0.7579412854886068 0.0 -0.0 0.652322778808067" material="broad_material" type="mesh" mesh="short_link.stl" class="visual" />
+            <geom name="dm_4340_3d_1_1_1_1_4_visual_3" pos="0.00514883 -0.0665215 -0.0189736" quat="0.535944438390608 -0.4612610132621487 0.5359464070280698 0.46126270757156834" material="4310__3d_20240814_1_material" type="mesh" mesh="4310__3d_20240814_1.stl" class="visual" />
+            <geom name="dm_4340_3d_1_1_1_1_4_visual_4" pos="-0 0 -5e-05" quat="0.7051306401092375 -0.7051332302034603 0.0528106453793692 -0.05281045139539335" material="dm_4340_3d_1_1_1_1_4_material" type="mesh" mesh="dm_4340_3d_1_1_1_1_4.stl" class="visual" />
+            <geom name="dm_4340_3d_1_1_1_1_4_visual_5" pos="0.00514883 -0.0665215 -0.0189736" quat="0.535944438390608 -0.4612610132621487 0.5359464070280698 0.46126270757156834" material="4310__ver_b0001_1_1_1_1_4_material" type="mesh" mesh="4310__3d_20240814_1__2.stl" class="visual" />
+            <geom name="dm_4340_3d_1_1_1_1_4_visual_6" pos="0.00514883 -0.0665215 -0.0189736" quat="0.535944438390608 -0.4612610132621487 0.5359464070280698 0.46126270757156834" material="4310__3d_20240814_1_3_material" type="mesh" mesh="4310__3d_20240814_1__3.stl" class="visual" />
+            <body name="l_link_2" pos="0.00564326 -0.066596 -0.0189736" quat="0.052811386959081594 -0.7051305700399795 0.05281158094649396 0.7051331601339449">
+              <joint name="wrist_1" type="hinge" ref="0.0" class="motor" range="-3.14159 3.14159" axis="0 0 1" />
+              <inertial pos="0 0 0" quat="1.0 0.0 0.0 0.0" mass="1e-09" diaginertia="1e-09 1e-09 1e-09" />
+              <geom name="l_link_2_collision_0" pos="-0.015 -1.24934e-05 -0.0623264" quat="0.4999981633974483 -0.49999999999662686 -0.49999999999662686 -0.5000018366025516" type="mesh" mesh="4310__3d_20240814_1.stl" class="collision" />
+              <geom name="l_link_2_collision_1" pos="0.0305 -0.0285 -0.024" quat="0.7071054825112363 0.0 -0.7071080798594735 0.0" type="mesh" mesh="l_link.stl" class="collision" />
+              <geom name="l_link_2_collision_2" pos="-0.015 -1.24934e-05 -0.0623264" quat="0.4999981633974483 -0.49999999999662686 -0.49999999999662686 -0.5000018366025516" type="mesh" mesh="4310__3d_20240814_1__2.stl" class="collision" />
+              <geom name="l_link_2_collision_3" pos="-0.0285 0.0305 -0" quat="0.4999981633974483 0.49999999999662686 0.49999999999662686 -0.5000018366025516" type="mesh" mesh="link_cylinder.stl" class="collision" />
+              <geom name="l_link_2_collision_4" pos="-0.015 -1.24934e-05 -0.0623264" quat="0.4999981633974483 -0.49999999999662686 -0.49999999999662686 -0.5000018366025516" type="mesh" mesh="4310__3d_20240814_1__3.stl" class="collision" />
+              <geom name="l_link_2_visual_0" pos="-0.015 -1.24934e-05 -0.0623264" quat="0.4999981633974483 -0.49999999999662686 -0.49999999999662686 -0.5000018366025516" material="4310__3d_20240814_1_material" type="mesh" mesh="4310__3d_20240814_1.stl" class="visual" />
+              <geom name="l_link_2_visual_1" pos="0.0305 -0.0285 -0.024" quat="0.7071054825112363 0.0 -0.7071080798594735 0.0" material="broad_material" type="mesh" mesh="l_link.stl" class="visual" />
+              <geom name="l_link_2_visual_2" pos="-0.015 -1.24934e-05 -0.0623264" quat="0.4999981633974483 -0.49999999999662686 -0.49999999999662686 -0.5000018366025516" material="4310__ver_b0001_1_1_1_1_4_material" type="mesh" mesh="4310__3d_20240814_1__2.stl" class="visual" />
+              <geom name="l_link_2_visual_3" pos="-0.0285 0.0305 -0" quat="0.4999981633974483 0.49999999999662686 0.49999999999662686 -0.5000018366025516" material="broad_material" type="mesh" mesh="link_cylinder.stl" class="visual" />
+              <geom name="l_link_2_visual_4" pos="-0.015 -1.24934e-05 -0.0623264" quat="0.4999981633974483 -0.49999999999662686 -0.49999999999662686 -0.5000018366025516" material="4310__3d_20240814_1_3_material" type="mesh" mesh="4310__3d_20240814_1__3.stl" class="visual" />
+              <body name="l_link_3" pos="-0.0155 -1.24934e-05 -0.0623264" quat="0.702982226786359 0.07626004842157375 0.7029827870239571 0.07626004842157375">
+                <joint name="wrist_2" type="hinge" ref="0.0" class="motor" range="-1.96144 1.52922" axis="0 0 1" />
+                <inertial pos="0 0 0" quat="1.0 0.0 0.0 0.0" mass="1e-09" diaginertia="1e-09 1e-09 1e-09" />
+                <geom name="l_link_3_collision_0" pos="0.0385 -0.0285 0" quat="1.0 0.0 -0.0 0.0" type="mesh" mesh="l_link.stl" class="collision" />
+                <geom name="l_link_3_collision_1" pos="0.088 -0.000173555 0.0305125" quat="9.381839456086127e-07 -0.7071054825106139 0.7071080798588512 -9.381873917569988e-07" type="mesh" mesh="4310__3d_20240814_1__3.stl" class="collision" />
+                <geom name="l_link_3_collision_2" pos="0.088 -0.000173555 0.0305125" quat="9.381839456086127e-07 -0.7071054825106139 0.7071080798588512 -9.381873917569988e-07" type="mesh" mesh="4310__3d_20240814_1__2.stl" class="collision" />
+                <geom name="l_link_3_collision_3" pos="0.088 -0.000173555 0.0305125" quat="9.381839456086127e-07 -0.7071054825106139 0.7071080798588512 -9.381873917569988e-07" type="mesh" mesh="4310__3d_20240814_1.stl" class="collision" />
+                <geom name="l_link_3_visual_0" pos="0.0385 -0.0285 0" quat="1.0 0.0 -0.0 0.0" material="broad_material" type="mesh" mesh="l_link.stl" class="visual" />
+                <geom name="l_link_3_visual_1" pos="0.088 -0.000173555 0.0305125" quat="9.381839456086127e-07 -0.7071054825106139 0.7071080798588512 -9.381873917569988e-07" material="4310__3d_20240814_1_3_material" type="mesh" mesh="4310__3d_20240814_1__3.stl" class="visual" />
+                <geom name="l_link_3_visual_2" pos="0.088 -0.000173555 0.0305125" quat="9.381839456086127e-07 -0.7071054825106139 0.7071080798588512 -9.381873917569988e-07" material="4310__ver_b0001_1_1_1_1_4_material" type="mesh" mesh="4310__3d_20240814_1__2.stl" class="visual" />
+                <geom name="l_link_3_visual_3" pos="0.088 -0.000173555 0.0305125" quat="9.381839456086127e-07 -0.7071054825106139 0.7071080798588512 -9.381873917569988e-07" material="4310__3d_20240814_1_material" type="mesh" mesh="4310__3d_20240814_1.stl" class="visual" />
+                <body name="l_link_4" pos="0.0885 -0.000173555 0.0305125" quat="0.7071054825112363 0.0 -0.7071080798594735 0.0">
+                  <joint name="wrist_3" type="hinge" ref="0.0" class="motor" range="-3.14159 3.14159" axis="0 0 1" />
+                  <inertial pos="0 0 0" quat="1.0 0.0 0.0 0.0" mass="1e-09" diaginertia="1e-09 1e-09 1e-09" />
+                  <geom name="l_link_4_collision" pos="-0.0285 -0.0305 -0.004" quat="0.4999981633974483 -0.49999999999662686 -0.49999999999662686 -0.5000018366025516" type="mesh" mesh="l_link.stl" class="collision" />
+                  <geom name="l_link_4_visual" pos="-0.0285 -0.0305 -0.004" quat="0.4999981633974483 -0.49999999999662686 -0.49999999999662686 -0.5000018366025516" material="broad_material" type="mesh" mesh="l_link.stl" class="visual" />
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+      <site name="broad_site" pos="0 0 0" quat="1 0 0 0" />
+      <camera name="front_camera" mode="track" fovy="90.0" quat="4.329637285359678e-17 4.329637285359677e-17 0.7071067811865475 0.7071067811865476" pos="0.0 2.0 0.5" />
+      <camera name="side_camera" mode="track" fovy="90.0" quat="-0.5 -0.4999999999999999 0.5 0.5000000000000001" pos="-2.0 0.0 0.5" />
+    </body>
+  </worldbody>
+
+  <actuator>
+    <motor name="base_ctrl" joint="base" class="motor" />
+    <motor name="shoulder_ctrl" joint="shoulder" class="motor" />
+    <motor name="elbow_ctrl" joint="elbow" class="motor" />
+    <motor name="wrist_1_ctrl" joint="wrist_1" class="motor" />
+    <motor name="wrist_2_ctrl" joint="wrist_2" class="motor" />
+    <motor name="wrist_3_ctrl" joint="wrist_3" class="motor" />
+  </actuator>
+
+  <contact>
+    <exclude body1="l_link_3" body2="l_link_4" />
+    <exclude body1="l_link_2" body2="l_link_3" />
+    <exclude body1="dm_4340_3d_1_1_1_1_4" body2="l_link_2" />
+    <exclude body1="long_link" body2="dm_4340_3d_1_1_1_1_4" />
+    <exclude body1="l_link" body2="long_link" />
+    <exclude body1="broad" body2="l_link" />
+  </contact>
+
+  <sensor>
+    <framepos name="broad_site_pos" objtype="site" objname="broad_site" />
+    <framequat name="broad_site_quat" objtype="site" objname="broad_site" />
+    <framelinvel name="broad_site_linvel" objtype="site" objname="broad_site" />
+    <frameangvel name="broad_site_angvel" objtype="site" objname="broad_site" />
+    <velocimeter name="broad_site_vel" site="broad_site" />
+  </sensor>
+</mujoco>
