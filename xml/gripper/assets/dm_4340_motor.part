@@ -1,0 +1,13 @@
+{
+    "configuration": "default",
+    "documentId": "06d928fea4a7cf6e33c0c73c",
+    "documentMicroversion": "386e65388c8448d06c66ab42",
+    "elementId": "d2929d736ca856043a5dbf74",
+    "fullConfiguration": "default",
+    "id": "MZR16IjOnWfMcPn1y",
+    "isStandardContent": false,
+    "name": "DM_4340_MOTOR <3>",
+    "partId": "JFD",
+    "suppressed": false,
+    "type": "Part"
+}
