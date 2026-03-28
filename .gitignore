@@ -1,5 +1,6 @@
 # Project-specific files
 tmp/
+typings/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

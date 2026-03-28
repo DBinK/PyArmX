@@ -5,8 +5,8 @@
   <compiler angle="radian" meshdir="assets" autolimits="true"/>
   <default>
     <default class="C:\it\PyArmX\xml\gripper">
-      <joint frictionloss="0.1" armature="0.005"/>
-      <position kp="10" dampratio="1"/>
+    <joint frictionloss="0.2" damping="1.0" armature="0.02"/>
+      <position kp="20" dampratio="2"/>
       <default class="visual">
         <geom type="mesh" contype="0" conaffinity="0" group="2"/>
       </default>
@@ -16,6 +16,9 @@
     </default>
   </default>
   <worldbody>
+    <body name="target" pos="0 0 0">
+      <geom type="sphere" size="0.005" rgba="0 0.8 0 1"/>
+    </body>
     <!-- Link broad -->
     <body name="broad" pos="0 0 0" quat="1 0 0 0" childclass="C:\it\PyArmX\xml\gripper">
       <!-- <inertial pos="-1.5743e-08 -8.67484e-05 0.0242348" mass="1.04351" fullinertia="0.00076785 0.000766062 0.000896953 -1.45834e-07 -3.03e-10 -1.87157e-06"/> -->
@@ -115,6 +118,7 @@
                 <geom type="mesh" class="collision" pos="0.088 -0.000173555 0.0305125" quat="0 0.707107 -0.707107 -0" mesh="dm_4310_cover" material="dm_4310_cover_material"/>
                 <!-- Link l_link_4 -->
                 <body name="l_link_4" pos="0.0885 -0.000173555 0.0305125" quat="0.707107 -0 -0.707107 0">
+                  <site name="ee" pos="0 -0.03 -0.16" size="0.005" rgba="1 0 0 1"/>
                   <!-- Joint from l_link_3 to l_link_4 -->
                   <joint axis="0 0 1" name="wrist_3" type="hinge" range="-3.1415926535897443 3.141592653589842"/>
                   <!-- <inertial pos="-0.0604824 -0.00971125 -0.0464885" mass="8.15544" fullinertia="8.00025 8.0008 8.00067 0.000104199 -0.000273431 1.96064e-05"/> -->

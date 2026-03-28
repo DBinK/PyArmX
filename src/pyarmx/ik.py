@@ -3,13 +3,15 @@ import mujoco.viewer
 import numpy as np
 import pygame
 
+
 # 初始化手柄
 pygame.init()
 pygame.joystick.init()
 joystick = pygame.joystick.Joystick(0)
 joystick.init()
 
-model = mujoco.MjModel.from_xml_path("xml/mjcf/scene.xml")
+# model = mujoco.MjModel.from_xml_path("xml/mjcf/scene.xml")
+model = mujoco.MjModel.from_xml_path("xml/gripper/scene.xml")
 data = mujoco.MjData(model)
 
 site_id = model.site("ee").id
