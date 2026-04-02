@@ -8,7 +8,10 @@ authors = [
 ]
 requires-python = ">=3.10"
 dependencies = [
+    "looptick>=0.1.4",
     "mujoco>=3.6.0",
+    "pydamiao",
+    "rich>=14.3.3",
 ]
 
 # [project.scripts]
@@ -20,3 +23,6 @@ build-backend = "uv_build"
 
 [tool.pyright]
 stubPath = "./typings"
+
+[tool.uv.sources]
+pydamiao = { path = "../pydamiao" }
