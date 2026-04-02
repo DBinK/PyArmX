@@ -86,6 +86,11 @@ class JointManager:
     def get_joint_by_id(self, slave_id: MotorId) -> Joint:
         return self.joints_by_slave_id[slave_id]
     
+    @property
+    def joints(self) -> list[Joint]:
+        sorted_ids = sorted(self.joints_by_slave_id.keys())
+        return [self.joints_by_slave_id[slave_id] for slave_id in sorted_ids]
+
     ### 关节状态 ###
 
     def update(self):
