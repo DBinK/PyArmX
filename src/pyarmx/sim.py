@@ -1,12 +1,15 @@
 import time
+
 import keyboard
 import mujoco
 import mujoco.viewer
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
+
 class ArmSimulator:
     def __init__(self, model_path: str, arm_dof: int = 6, site_name: str = "ee"):
+        """ 创建一个仿真器 """
         self.model = mujoco.MjModel.from_xml_path(model_path)
         self.data = mujoco.MjData(self.model)
         self.arm_dof = arm_dof
@@ -17,29 +20,49 @@ class ArmSimulator:
         self.jacp = np.zeros((3, self.model.nv))
         self.jacr = np.zeros((3, self.model.nv))
 
-        mujoco.mj_forward(self.model, self.data)
         self.viewer: mujoco.viewer.Handle | None = None
 
-    def get_fk(self, q: np.ndarray):
+        mujoco.mj_forward(self.model, self.data)  # 获取初始状态
+
+    def get_q_current(self):
+        """获取当前所有关节角"""
+        return self.data.qpos[:self.arm_dof].copy()
+
+    def get_fk_mat(self, q: np.ndarray):
+        """获取FK结果, 返回位置和旋转矩阵"""
         self.data.qpos[:self.arm_dof] = q
         mujoco.mj_forward(self.model, self.data)
         pos = self.data.site_xpos[self.site_id].copy()
         rot = self.data.site_xmat[self.site_id].reshape(3, 3).copy()
         return pos, rot
 
+    def get_fk_quat(self, q: np.ndarray):
+        """获取FK结果, 返回位置和四元数"""
+        pos, rot = self.get_fk_mat(q)
+        quat = R.from_matrix(rot).as_quat()
+        return pos, quat
+
     def get_jacobian(self, q: np.ndarray):
+        """获取Jacobian"""
         self.data.qpos[:self.arm_dof] = q
         mujoco.mj_forward(self.model, self.data)
         mujoco.mj_jacSite(self.model, self.data, self.jacp, self.jacr, self.site_id)
         return self.jacp, self.jacr
 
+    def update_target_dot(self, target_pos):
+        """更新目标绿点的可视化位置"""
+        target_id = self.model.body("target").id
+        self.model.body_pos[target_id] = target_pos
+
     def step(self, q_target: np.ndarray):
+        """ 更新仿真器 """
         self.data.ctrl[:self.arm_dof] = q_target
         mujoco.mj_step(self.model, self.data)
         if self.viewer is not None:
             self.viewer.sync()
 
     def launch(self):
+        """启动可视化界面"""
         return mujoco.viewer.launch_passive(self.model, self.data)
 
 
