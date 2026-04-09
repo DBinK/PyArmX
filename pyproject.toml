@@ -33,3 +33,16 @@ pydamiao = { path = "../pydamiao" }
 dev = [
     "pybind11-stubgen>=2.5.5",
 ]
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["win-64"]
+
+[tool.pixi.pypi-dependencies]
+pyarmx = { path = ".", editable = true }
+
+[tool.pixi.environments]
+default = { solve-group = "default" }
+dev = { features = ["dev"], solve-group = "default" }
+
+[tool.pixi.tasks]
