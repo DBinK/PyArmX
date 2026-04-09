@@ -1,99 +1,91 @@
-import mujoco
-import mujoco.viewer
+from typing import Callable, Tuple
+
 import numpy as np
-import pygame
+from scipy.spatial.transform import Rotation as R
 
 
-# 初始化手柄
-pygame.init()
-pygame.joystick.init()
-joystick = pygame.joystick.Joystick(0)
-joystick.init()
+class IKSolver:
+    def __init__(
+        self,
+        fk_func: Callable[[np.ndarray], Tuple[np.ndarray, np.ndarray]],
+        jac_func: Callable[[np.ndarray], Tuple[np.ndarray, np.ndarray]],
+        arm_dof: int,
+        q_min: np.ndarray,
+        q_max: np.ndarray,
+        max_iters: int = 8,
+        pos_weight: float = 1.0,
+        rot_weight: float = 0.3,
+        step_max: float = 0.08,
+        pos_tol: float = 1e-4,
+        rot_tol: float = 2e-3,
+    ):
+        self.fk_func = fk_func
+        self.jac_func = jac_func
+        self.arm_dof = arm_dof
+        self.q_min = q_min
+        self.q_max = q_max
+        self.max_iters = max_iters
+        self.pos_weight = pos_weight
+        self.rot_weight = rot_weight
+        self.step_max = step_max
+        self.pos_tol = pos_tol
+        self.rot_tol = rot_tol
 
-# model = mujoco.MjModel.from_xml_path("xml/mjcf/scene.xml")
-model = mujoco.MjModel.from_xml_path("xml/gripper/scene.xml")
-data = mujoco.MjData(model)
+    @staticmethod
+    def _rotation_error(R_current: np.ndarray, R_target: np.ndarray) -> np.ndarray:
+        R_err = R_target @ R_current.T
+        return 0.5 * np.array([
+            R_err[2, 1] - R_err[1, 2],
+            R_err[0, 2] - R_err[2, 0],
+            R_err[1, 0] - R_err[0, 1],
+        ])
 
-site_id = model.site("ee").id
-target_id = model.body("target").id
+    @staticmethod
+    def _clamp_norm(x: np.ndarray, max_norm: float) -> np.ndarray:
+        n = np.linalg.norm(x)
+        if n > max_norm and n > 1e-12:
+            return x / n * max_norm
+        return x
 
-target_pos = np.array([0.1, 0.2, 0.3])
+    @staticmethod
+    def _adaptive_damping(J: np.ndarray, lam_min=1e-4, lam_max=5e-2, sigma_ref=0.05) -> float:
+        s = np.linalg.svd(J, compute_uv=False)
+        sigma_min = s[-1] if len(s) > 0 else 0.0
+        ratio = np.clip(sigma_min / sigma_ref, 0.0, 1.0)
+        return lam_max * (1.0 - ratio) ** 2 + lam_min
 
-# 上一帧 dq（用于滤波）
-dq_prev = np.zeros(6)
+    def solve(self, q_init: np.ndarray, target_pos: np.ndarray, target_quat: np.ndarray) -> np.ndarray:
+        target_rot = R.from_quat([target_quat[1], target_quat[2], target_quat[3], target_quat[0]]).as_matrix()
+        q = q_init.copy()
 
-with mujoco.viewer.launch_passive(model, data) as viewer:
+        for _ in range(self.max_iters):
+            current_pos, current_rot = self.fk_func(q)
+            pos_err = target_pos - current_pos
+            rot_err = self._rotation_error(current_rot, target_rot)
 
-    while viewer.is_running():
+            if np.linalg.norm(pos_err) < self.pos_tol and np.linalg.norm(rot_err) < self.rot_tol:
+                break
 
-        pygame.event.pump()
+            jacp_full, jacr_full = self.jac_func(q)
+            J_p = jacp_full[:, :self.arm_dof]
+            J_r = jacr_full[:, :self.arm_dof]
 
-        # 🎮 手柄输入
-        dx = joystick.get_axis(1)
-        dy = joystick.get_axis(0)
-        dz = joystick.get_axis(3)
+            J = np.vstack([
+                self.pos_weight * J_p,
+                self.rot_weight * J_r
+            ])
 
-        # 更新目标
-        target_pos[0] += -dx * 0.001
-        target_pos[1] += -dy * 0.001
-        target_pos[2] += -dz * 0.001
+            lam = self._adaptive_damping(J)
+            H = J.T @ J + lam * np.eye(self.arm_dof)
+            err = np.concatenate([self.pos_weight * pos_err, self.rot_weight * rot_err])
+            g = J.T @ err
 
-        model.body_pos[target_id] = target_pos
+            try:
+                dq = np.linalg.solve(H, g)
+            except np.linalg.LinAlgError:
+                dq = np.linalg.pinv(H) @ g
 
-        # === FK ===
-        mujoco.mj_forward(model, data)
+            dq = self._clamp_norm(dq, self.step_max)
+            q = np.clip(q + dq, self.q_min, self.q_max)
 
-        current_pos = data.site_xpos[site_id].copy()
-        error = target_pos - current_pos
-
-        # =========================
-        # ✅ Resolved-rate IK 核心
-        # =========================
-
-        # 1️⃣ task space velocity
-        kp = 3.0
-        v = kp * error
-
-        # 2️⃣ 限制末端速度（非常关键）
-        v_max = 30.3
-        v_norm = np.linalg.norm(v)
-        if v_norm > v_max:
-            v = v / v_norm * v_max
-
-        # 3️⃣ Jacobian
-        jacp = np.zeros((3, model.nv))
-        jacr = np.zeros((3, model.nv))
-        mujoco.mj_jacSite(model, data, jacp, jacr, site_id)
-
-        J = jacp[:, :6]
-
-        # 4️⃣ DLS IK（解速度）
-        lam = 0.05
-        dq = J.T @ np.linalg.inv(J @ J.T + lam * np.eye(3)) @ v
-
-        # 5️⃣ 限制关节速度（非常重要）
-        dq_max = 1.0
-        dq_norm = np.linalg.norm(dq)
-        if dq_norm > dq_max:
-            dq = dq / dq_norm * dq_max
-
-        # 6️⃣ 低通滤波（抗抖）
-        dq = 0.8 * dq_prev + 0.2 * dq
-        dq_prev = dq
-
-        # 7️⃣ 积分（关键：这里只能这样用）
-        # dt = model.opt.timestep
-        dt = 5  # 50Hz
-        q = data.qpos[:6].copy()
-        q_target = q + dq * dt
-
-        print(f"\r q_target: {q_target}" , end="")
-
-        # 位置控制
-        data.ctrl[:6] = q_target
-
-        for _ in range(1):
-            mujoco.mj_step(model, data)
-
-        # mujoco.mj_step(model, data)
-        viewer.sync()
+        return q
