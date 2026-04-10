@@ -12,6 +12,7 @@ dependencies = [
     "loguru>=0.7.3",
     "looptick>=0.1.4",
     "mujoco>=3.6.0",
+    "pydamiao",
     "pygame>=2.6.1",
     "rich>=14.3.3",
     "ruckig==0.12.2",
