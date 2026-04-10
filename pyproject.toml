@@ -9,10 +9,12 @@ authors = [
 requires-python = ">=3.10"
 dependencies = [
     "keyboard>=0.13.5",
+    "loguru>=0.7.3",
     "looptick>=0.1.4",
     "mujoco>=3.6.0",
     "pygame>=2.6.1",
     "rich>=14.3.3",
+    "ruckig==0.12.2",
     "scipy>=1.15.3",
     "scipy-stubs>=1.15.3.0",
 ]

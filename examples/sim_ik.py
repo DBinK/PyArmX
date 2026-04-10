@@ -8,9 +8,6 @@ from pyarmx.sim import ArmSimulator, KeyboardController
 
 from scipy.spatial.transform import Rotation as R
 
-def fmt_arr(arr, precision=3):
-    """将 numpy 数组格式化为固定小数位的字符串，如 [0.000, 1.234]"""
-    return "[" + ", ".join(f"{x:.{precision}f}" for x in arr) + "]"
 
 
 MODEL_PATH = "xml/mjcf/scene.xml"
