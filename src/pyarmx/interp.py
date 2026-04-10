@@ -49,7 +49,7 @@ class RuckigSlerpRunner:
         self.initialized = False
 
     # ================= 初始化 =================
-    def set_initial_current(self, pose):
+    def set_initial_current(self, pose: list[float]):
         """
         pose: [x,y,z,qx,qy,qz,qw]
         """
@@ -68,7 +68,7 @@ class RuckigSlerpRunner:
         print("[Init] 初始位姿:", pose)
 
     # ================= 外部接口：推送目标 =================
-    def set_target(self, pose):
+    def set_target(self, pose: list[float]):
         """
         pose: [x,y,z,qx,qy,qz,qw]
         """
@@ -82,14 +82,14 @@ class RuckigSlerpRunner:
         self.target_queue.put(pose)
 
     # ================= 外部接口：获取输出 =================
-    def get_pose(self, block=False, timeout=None):
+    def get_pose(self, block=False, timeout=None) -> list[float] | None:
         try:
             return self.output_queue.get(block=block, timeout=timeout)
         except queue.Empty:
             return None
 
     # ================= 内部：设置目标 =================
-    def _set_target(self, pose):
+    def _set_target(self, pose: list[float]):
         with self.lock:
             self.input_param.target_position = pose[:3]
 
@@ -200,7 +200,7 @@ if __name__ == "__main__":
 
     from pyarmx.utils.log import fmt_arr
 
-    runner = RuckigSlerpRunner()
+    runner = RuckigSlerpRunner(0.008)
 
     runner.set_initial_current([0.2, 0.0, 0.1, 0, 0, 0, 1])
     runner.start()
