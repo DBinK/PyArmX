@@ -106,7 +106,6 @@ class KeyboardController:
             delta_R = R.from_rotvec(delta_ang)
             current_R = R.from_quat(target_quat)
             new_R = delta_R * current_R
-            target_quat = np.roll(new_R.as_quat(), 1)
+            target_quat = new_R.as_quat()
             target_quat /= np.linalg.norm(target_quat)
-
         return target_pos, target_quat

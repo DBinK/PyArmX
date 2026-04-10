@@ -26,7 +26,7 @@ ik_solver = IKSolver(
 
 # ================= 2. 初始化 Ruckig 规划器 =================
 # control_period 建议与 sim.dt 保持一致，保证时间同步
-planner = RuckigPosePlanner(control_period=sim.dt, buffer_size=100)
+planner = RuckigPosePlanner(control_period=0.008, buffer_size=100)
 
 # 获取仿真初始位姿
 # 初始状态
@@ -72,7 +72,7 @@ while sim.viewer.is_running():
     # 检测目标是否变化，如果变化则推送给 Planner
     # 简单的阈值判断，避免微小抖动导致频繁重规划
     pos_diff = np.linalg.norm(new_target_pos - final_target_pos)
-    quat_diff = np.abs(np.dot(new_target_quat, final_target_quat)) # 接近1表示相同
+    quat_diff = 1.0 - np.abs(np.dot(new_target_quat, final_target_quat))
     
     if pos_diff > 1e-4 or quat_diff < 0.9999:
         final_target_pos = new_target_pos
@@ -82,6 +82,9 @@ while sim.viewer.is_running():
         # Planner 内部队列会自动覆盖旧目标，并重新计算轨迹
         target_7d = np.concatenate([final_target_pos, final_target_quat])
         planner.set_target(target_7d)
+        
+    # print(f"\n[Debug] set_target called! pos_diff={pos_diff:.4f}, quat_diff={quat_diff:.6f}")
+
 
     # 可视化：显示用户设定的“最终目标”
     sim.update_target_dot(final_target_pos)

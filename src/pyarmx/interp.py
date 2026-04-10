@@ -123,7 +123,9 @@ class RuckigPosePlanner:
             rots = R.from_quat(np.vstack([self.current_quat, self.target_quat]))
 
             self.slerp = Slerp(key_times, rots)
-            self.slerp_start_time = time.time()
+            # 只在首次初始化或上一段轨迹完成后才重置时间
+            if self.slerp_start_time is None or (time.time() - self.slerp_start_time) >= self.slerp_duration:
+                self.slerp_start_time = time.time()
 
     # ================= 主循环 =================
     def run_loop(self):
