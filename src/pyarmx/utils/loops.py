@@ -25,7 +25,6 @@ def wait_until(target_time: float):
 
 class Time(NamedTuple):
     """计时器状态快照"""
-
     elapsed: float  # 已用时间
     remaining: float  # 剩余时间
     ok: bool  # 是否未超时
@@ -33,7 +32,6 @@ class Time(NamedTuple):
 
 class Tick(NamedTuple):
     """循环节拍快照"""
-
     elapsed: float  # 总运行时间
     delta: float  # 本轮循环中任务的实际耗时
     ok: bool  # 是否未超时
@@ -42,6 +40,7 @@ class Tick(NamedTuple):
 class Timer:
     def __init__(self, duration: float, auto_start=True):
         self.duration = duration
+        self.state = Time(elapsed=0.0, remaining=duration, ok=True)
         self._start: float | None = None
         self._end: float | None = None
         if auto_start:
@@ -73,7 +72,8 @@ class Timer:
         remaining = max(0.0, end - now)
         is_ok = now < end
 
-        return Time(elapsed=elapsed, remaining=remaining, ok=is_ok)
+        self.state = Time(elapsed=elapsed, remaining=remaining, ok=is_ok)
+        return self.state
 
     def __iter__(self):
         self.reset()
@@ -92,6 +92,7 @@ class Rate:
         self.duration = duration
         self.warn = warn
         self.missed = 0
+        self.tick = Tick(elapsed=0.0, delta=0.0, ok=True)
         self._start = self._next = self._end = self._last = None
 
     def reset(self):
@@ -126,7 +127,8 @@ class Rate:
         if self._end is not None and now_post >= self._end:
             is_ok = False
 
-        return Tick(elapsed=now_post - start, delta=dt, ok=is_ok)
+        self.tick = Tick(elapsed=now_post - start, delta=dt, ok=is_ok)
+        return self.tick
 
     def __iter__(self):
         self.reset()
@@ -192,3 +194,15 @@ if __name__ == "__main__":
         count += 1
         if count >= 50:
             break
+
+    # --- 4. 测试 Timer + Rate 组合 ---
+    loop = Rate(hz=10)
+    timer = Timer(duration=0.5)
+
+    while loop.sleep().ok:  # 固定频率循环
+
+        print(f"Rate: {loop.tick.elapsed=:.6f}, {loop.tick.delta=:.6f}")
+
+        if timer.done:     # 限频打印
+            timer.reset()  # 重置计时器
+            print(f"Timer: {timer.state.elapsed=:.6f}")
