@@ -8,6 +8,8 @@ from pyarmx.sim import ArmSimulator, KeyboardController
 
 from scipy.spatial.transform import Rotation as R
 
+from pyarmx.utils.log import fmt_arr
+
 
 
 MODEL_PATH = "xml/mjcf/scene.xml"
@@ -29,7 +31,7 @@ q_current = sim.get_q_current()
 target_pos, target_quat = sim.get_fk_quat(q_current)
 
 target_pos = np.array([0.008, 0.072, 0.086])
-target_quat = np.array([1.000, 0.006, -0.005, -0.022])
+target_quat = np.array([0.006, -0.005, -0.022, 1.000])  # [x, y, z, w] 格式
 
 # 启动仿真
 sim.viewer = sim.launch()
@@ -59,7 +61,7 @@ while sim.viewer.is_running():
     now = time.perf_counter()
     if now - last_print_time > 0.1:
         current_rot = sim.data.site_xmat[sim.site_id].reshape(3, 3)
-        target_rot = R.from_quat([target_quat[1], target_quat[2], target_quat[3], target_quat[0]]).as_matrix()
+        target_rot = R.from_quat(target_quat).as_matrix()
 
         r_err = np.linalg.norm(IKSolver._rotation_error(current_rot, target_rot))
         p_err = np.linalg.norm(target_pos - sim.data.site_xpos[sim.site_id])

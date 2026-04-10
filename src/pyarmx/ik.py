@@ -55,7 +55,7 @@ class IKSolver:
         return lam_max * (1.0 - ratio) ** 2 + lam_min
 
     def solve(self, q_init: np.ndarray, target_pos: np.ndarray, target_quat: np.ndarray) -> np.ndarray:
-        target_rot = R.from_quat([target_quat[1], target_quat[2], target_quat[3], target_quat[0]]).as_matrix()
+        target_rot = R.from_quat(target_quat).as_matrix()
         q = q_init.copy()
 
         for _ in range(self.max_iters):

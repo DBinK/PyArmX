@@ -37,7 +37,7 @@ class ArmSimulator:
         return pos, rot
 
     def get_fk_quat(self, q: np.ndarray):
-        """获取FK结果, 返回位置和四元数"""
+        """获取FK结果, 返回位置和四元数 [x, y, z, w]"""
         pos, rot = self.get_fk_mat(q)
         quat = R.from_matrix(rot).as_quat()
         return pos, quat
@@ -104,7 +104,7 @@ class KeyboardController:
         if np.linalg.norm(rot_vec) > 1e-12:
             delta_ang = rot_vec * self.rot_speed * speed_scale * dt
             delta_R = R.from_rotvec(delta_ang)
-            current_R = R.from_quat([target_quat[1], target_quat[2], target_quat[3], target_quat[0]])
+            current_R = R.from_quat(target_quat)
             new_R = delta_R * current_R
             target_quat = np.roll(new_R.as_quat(), 1)
             target_quat /= np.linalg.norm(target_quat)
