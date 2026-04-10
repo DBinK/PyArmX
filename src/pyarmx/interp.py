@@ -19,10 +19,9 @@ class RuckigPosePlanner:
         self.input_param = ruckig.InputParameter(3)
         self.output_param = ruckig.OutputParameter(3)
 
-        self.input_param.max_velocity = [0.5, 0.5, 0.5]
-        self.input_param.max_acceleration = [5.0, 5.0, 5.0]
-        self.input_param.max_jerk = [5.0, 5.0, 5.0]
-
+        self.input_param.max_velocity = [50.0, 50.0, 50.0]
+        self.input_param.max_acceleration = [50.0, 50.0, 50.0]
+        self.input_param.max_jerk = [50.0, 50.0, 50.0]
         self._current_position = np.zeros(3, dtype=np.float64)
         self._current_velocity = np.zeros(3, dtype=np.float64)
         self._current_acceleration = np.zeros(3, dtype=np.float64)

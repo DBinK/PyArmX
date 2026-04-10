@@ -26,7 +26,7 @@ ik_solver = IKSolver(
 
 # ================= 2. 初始化 Ruckig 规划器 =================
 # control_period 建议与 sim.dt 保持一致，保证时间同步
-planner = RuckigPosePlanner(control_period=0.008, buffer_size=100)
+planner = RuckigPosePlanner(control_period=sim.dt, buffer_size=100)
 
 # 获取仿真初始位姿
 # 初始状态
