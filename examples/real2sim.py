@@ -13,17 +13,17 @@ from pyarmx.sim import ArmSimulator
 from pyarmx.utils.log import fmt_arr
 from pyarmx.utils.loops import Rate, Timer
 
-# --- 真实机械臂 --- #
-bus = SerialBus("COM9", baudrate=921600, timeout=0.01)
-manager = JointManager(bus)
+# # --- 真实机械臂 --- #
+# bus = SerialBus("COM9", baudrate=921600, timeout=0.01)
+# manager = JointManager(bus)
 
-# 注册joint
-manager.register(joint_cfgs)
+# # 注册joint
+# manager.register(joint_cfgs)
 
-# 设置初始状态
-manager.clean_error()
-manager.enable()
-manager.set_teach_mode()
+# # 设置初始状态
+# manager.clean_error()
+# manager.enable()
+# manager.set_teach_mode()
 
 
 # --- 仿真机械臂 --- #
@@ -37,10 +37,11 @@ sim.viewer = sim.launch()  # 启动仿真
 loop = Rate(hz=100)
 timer = Timer(duration=0.5)
 
-while sim.viewer.is_running() and loop.sleep().ok:
+while sim.viewer.is_running() and loop.sleep():
 
-    manager.update()
-    q_command = manager.get_joints_pos_list()
+    # manager.update()
+    # q_command = manager.get_joints_pos_list()
+    q_command = [10.0] * 6
 
     sim.step(np.asanyarray(q_command))
 
