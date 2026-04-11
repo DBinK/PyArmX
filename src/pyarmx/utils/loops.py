@@ -96,6 +96,16 @@ class Rate:
         self.tick = Tick(elapsed=0.0, delta=0.0, on_time=True, alive=True)
         self._start = self._next = self._end = self._last = None
 
+    @classmethod
+    def from_period(
+        cls, 
+        period: float, 
+        duration: float | None = None, 
+        warn: bool = False
+    ) -> "Rate":
+        hz = 1.0 / period
+        return cls(hz, duration, warn)
+
     def reset(self):
         now = time.perf_counter()
         self._start = self._next = self._last = now
@@ -200,7 +210,7 @@ if __name__ == "__main__":
 
     # --- 4. 测试 Timer + Rate 组合 ---
     print("\n--- 4. 测试 Timer + Rate 组合 ---")
-    loop = Rate(hz=10)
+    loop = Rate.from_period(0.1)
     timer = Timer(duration=0.5)
 
     for tick in loop:  # 固定频率循环
