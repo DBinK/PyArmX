@@ -6,7 +6,7 @@
   <default>
     <default class="pydm">
     <joint frictionloss="0.2" damping="1.0" armature="0.02"/>
-      <position kp="20" dampratio="2"/>
+      <position kp="500" dampratio="2"/>
       <default class="visual">
         <geom type="mesh" contype="0" conaffinity="0" group="2"/>
       </default>

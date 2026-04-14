@@ -1,4 +1,5 @@
 import time
+import threading
 
 import keyboard
 import mujoco
@@ -14,6 +15,7 @@ class ArmSimulator:
         self.data = mujoco.MjData(self.model)
         self.arm_dof = arm_dof
         self.dt = self.model.opt.timestep
+        # self.dt = 20.2001
 
         self.site_id = self.model.site(site_name).id
 
@@ -64,6 +66,20 @@ class ArmSimulator:
     def launch(self):
         """启动可视化界面"""
         return mujoco.viewer.launch_passive(self.model, self.data)
+
+    # 异步方法启动仿真
+    def set_q_target(self, q_target: np.ndarray):
+        """设置目标关节角"""
+        self.q_target = q_target.copy()
+    
+    def start(self):
+        self.start_thread = threading.Thread(target=self._loop)
+
+    def _loop(self):
+        self.viewer = self.launch()
+        while self.viewer.is_running():
+            self.step(self.data.qpos[:self.arm_dof])
+    
 
 
 # =========================
