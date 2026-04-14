@@ -9,6 +9,7 @@ from pyarmx.sim import ArmSimulator, KeyboardController
 from scipy.spatial.transform import Rotation as R
 
 from pyarmx.utils.log import fmt_arr
+from pyarmx.utils.loops import Rate, Timer
 
 
 
@@ -34,13 +35,15 @@ target_pos = np.array([0.008, 0.072, 0.086])
 target_quat = np.array([0.006, -0.005, -0.022, 1.000])  # [x, y, z, w] 格式
 
 # 启动仿真
-sim.viewer = sim.launch()
+sim.launch()
+sim.start()
 
 # 主循环
-last_print_time = 0.0
-while sim.viewer.is_running():
+# --- 主循环 --- #
+loop = Rate(hz=100)
+timer = Timer(duration=0.5)
 
-    t_start = time.perf_counter()  # 获取循环开始时间戳, 稍后用于帧率控制
+while sim.viewer.is_running() and loop.sleep(): # type: ignore
 
     # 输入层
     target_pos, target_quat = controller.update(
@@ -50,35 +53,31 @@ while sim.viewer.is_running():
     # 目标点可视化
     sim.update_target_dot(target_pos)
 
-    # IK + 控制
-    q_command = ik_solver.solve(q_current, target_pos, target_quat)
-    sim.step(q_command)
+    # TODO: 待修复 IK
+    # IK + 控制 
+    # q_command = ik_solver.solve(q_current, target_pos, target_quat)
+    q_command = [0.0] * 6
+
+    sim.set_q_target(np.asanyarray(q_command))
 
     # 更新当前状态, 此处仿真直接用 q_command , 真机可以考虑用真实的 q_current
     q_current = q_command 
 
+    print(f"q: {fmt_arr(q_command)}, pos: {fmt_arr(target_pos)}, {loop.tick.delta:.6f}, {loop.tick.on_time}")
     # 监控
-    now = time.perf_counter()
-    if now - last_print_time > 0.1:
-        current_rot = sim.data.site_xmat[sim.site_id].reshape(3, 3)
-        target_rot = R.from_quat(target_quat).as_matrix()
+    # if timer.done:  # 限频打印
+    #     current_rot = sim.data.site_xmat[sim.site_id].reshape(3, 3)
+    #     target_rot = R.from_quat(target_quat).as_matrix()
 
-        r_err = np.linalg.norm(IKSolver._rotation_error(current_rot, target_rot))
-        p_err = np.linalg.norm(target_pos - sim.data.site_xpos[sim.site_id])
+    #     r_err = np.linalg.norm(IKSolver._rotation_error(current_rot, target_rot))
+    #     p_err = np.linalg.norm(target_pos - sim.data.site_xpos[sim.site_id])
 
-        q_str = fmt_arr(q_current)
-        p_str = fmt_arr(target_pos)
-        quat_str = fmt_arr(target_quat)
+    #     q_str = fmt_arr(q_current)
+    #     p_str = fmt_arr(target_pos)
+    #     quat_str = fmt_arr(target_quat)
 
-        print(
-            f"\rPos Err: {p_err:.4f} | Rot Err: {r_err:.4f} | Q: {q_str} | P: {p_str} | Quat: {quat_str} {8 * ' '}",
-            end="",
-        )
-        # print(f"\rPos Err: {p_err:.4f} | Rot Err: {r_err:.4f}", end="")
-        last_print_time = now
-
-    # 帧率控制
-    sleep_time = max(0.0, sim.dt - (time.perf_counter() - t_start))
-    if sleep_time > 0:
-        time.sleep(sleep_time)
-
+    #     print(
+    #         f"\rPos Err: {p_err:.4f} | Rot Err: {r_err:.4f} | Q: {q_str} | P: {p_str} | Quat: {quat_str} {8 * ' '}",
+    #         end="",
+    #     )
+    #     # print(f"\rPos Err: {p_err:.4f} | Rot Err: {r_err:.4f}", end="")

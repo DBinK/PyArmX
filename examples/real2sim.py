@@ -38,7 +38,7 @@ sim.start()
 loop = Rate(hz=100)
 timer = Timer(duration=0.5)
 
-while loop.sleep():
+while sim.viewer.is_running() and loop.sleep(): # type: ignore
 
     manager.set_teach_mode(False)
     q_command = manager.get_joints_pos_list()

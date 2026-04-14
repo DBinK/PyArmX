@@ -58,8 +58,9 @@ class ArmSimulator:
 
     def update_target_dot(self, target_pos):
         """更新目标绿点的可视化位置"""
-        target_id = self.model.body("target").id
-        self.model.body_pos[target_id] = target_pos
+        with self._lock:
+            target_id = self.model.body("target").id
+            self.model.body_pos[target_id] = target_pos.copy()
 
     def set_q_target(self, q_target: np.ndarray):
         """设置目标关节角(非阻塞)"""
@@ -78,7 +79,7 @@ class ArmSimulator:
             if self.viewer is not None:
                 self.viewer.sync()
             
-            time.sleep(self.dt)
+            # time.sleep(self.dt)
 
     def start(self):
         """启动仿真器(后台运行)"""
@@ -103,6 +104,7 @@ class ArmSimulator:
     def launch(self):
         """启动可视化界面"""
         self.viewer = mujoco.viewer.launch_passive(self.model, self.data)
+        return self.viewer
 
 
 # =========================
