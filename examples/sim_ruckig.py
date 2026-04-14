@@ -48,7 +48,8 @@ planner.set_init_pose(init_pose_7d)
 planner.start()
 
 # 启动仿真可视化
-sim.viewer = sim.launch()
+sim.launch()
+sim.start()
 
 # ================= 3. 主循环 =================
 last_print_time = 0.0
@@ -59,7 +60,7 @@ final_target_quat = init_quat.copy()
 
 print("[Sim] 系统就绪。使用键盘移动红色目标点，机械臂将平滑追踪。")
 
-while sim.viewer.is_running():
+while sim.viewer.is_running(): # type: ignore
     t_start = time.perf_counter()
 
     # --- A. 输入层：键盘更新“最终目标” ---

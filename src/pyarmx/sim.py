@@ -28,33 +28,40 @@ class ArmSimulator:
         self._running = False
         self._thread = None
         self._lock = threading.Lock()
+        
+        # 用于 IK 计算的独立数据副本（避免与仿真线程竞争）
+        self._ik_model = mujoco.MjModel.from_xml_path(model_path)
+        self._ik_data = mujoco.MjData(self._ik_model)
+        self._ik_jacp = np.zeros((3, self._ik_model.nv))
+        self._ik_jacr = np.zeros((3, self._ik_model.nv))
 
         mujoco.mj_forward(self.model, self.data)  # 获取初始状态
 
     def get_q_current(self):
         """获取当前所有关节角"""
-        return self.data.qpos[:self.arm_dof].copy()
+        with self._lock:
+            return self.data.qpos[:self.arm_dof].copy()
 
     def get_fk_mat(self, q: np.ndarray):
-        """获取FK结果, 返回位置和旋转矩阵"""
-        self.data.qpos[:self.arm_dof] = q
-        mujoco.mj_forward(self.model, self.data)
-        pos = self.data.site_xpos[self.site_id].copy()
-        rot = self.data.site_xmat[self.site_id].reshape(3, 3).copy()
+        """获取FK结果, 返回位置和旋转矩阵（使用独立副本，无锁）"""
+        self._ik_data.qpos[:self.arm_dof] = q
+        mujoco.mj_forward(self._ik_model, self._ik_data)
+        pos = self._ik_data.site_xpos[self.site_id].copy()
+        rot = self._ik_data.site_xmat[self.site_id].reshape(3, 3).copy()
         return pos, rot
 
     def get_fk_quat(self, q: np.ndarray):
-        """获取FK结果, 返回位置和四元数 [x, y, z, w]"""
+        """获取FK结果, 返回位置和四元数 [x, y, z, w]（使用独立副本，无锁）"""
         pos, rot = self.get_fk_mat(q)
         quat = R.from_matrix(rot).as_quat()
         return pos, quat
 
     def get_jacobian(self, q: np.ndarray):
-        """获取Jacobian"""
-        self.data.qpos[:self.arm_dof] = q
-        mujoco.mj_forward(self.model, self.data)
-        mujoco.mj_jacSite(self.model, self.data, self.jacp, self.jacr, self.site_id)
-        return self.jacp, self.jacr
+        """获取Jacobian（使用独立副本，无锁）"""
+        self._ik_data.qpos[:self.arm_dof] = q
+        mujoco.mj_forward(self._ik_model, self._ik_data)
+        mujoco.mj_jacSite(self._ik_model, self._ik_data, self._ik_jacp, self._ik_jacr, self.site_id)
+        return self._ik_jacp.copy(), self._ik_jacr.copy()
 
     def update_target_dot(self, target_pos):
         """更新目标绿点的可视化位置"""
@@ -77,7 +84,8 @@ class ArmSimulator:
             mujoco.mj_step(self.model, self.data)
             
             if self.viewer is not None:
-                self.viewer.sync()
+                with self._lock:
+                    self.viewer.sync()
             
             # time.sleep(self.dt)
 

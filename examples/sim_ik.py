@@ -55,8 +55,8 @@ while sim.viewer.is_running() and loop.sleep(): # type: ignore
 
     # TODO: 待修复 IK
     # IK + 控制 
-    # q_command = ik_solver.solve(q_current, target_pos, target_quat)
-    q_command = [0.0] * 6
+    q_command = ik_solver.solve(q_current, target_pos, target_quat)
+    # q_command = [0.0] * 6
 
     sim.set_q_target(np.asanyarray(q_command))
 
