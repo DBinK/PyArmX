@@ -73,7 +73,7 @@ class ArmSimulator:
     def set_q_target(self, q_target: np.ndarray):
         """设置目标关节角"""
         self.q_target = q_target.copy()
-        print("q_target:", q_target)
+        # print("q_target:", q_target)
     
     def start(self):
         self.start_thread = threading.Thread(target=self._loop, daemon=True)
