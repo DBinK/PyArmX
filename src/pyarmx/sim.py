@@ -1,4 +1,5 @@
 import time
+import threading
 
 import keyboard
 import mujoco
@@ -21,6 +22,12 @@ class ArmSimulator:
         self.jacr = np.zeros((3, self.model.nv))
 
         self.viewer: mujoco.viewer.Handle | None = None
+        
+        # 异步控制相关
+        self._q_target = None
+        self._running = False
+        self._thread = None
+        self._lock = threading.Lock()
 
         mujoco.mj_forward(self.model, self.data)  # 获取初始状态
 
@@ -54,16 +61,48 @@ class ArmSimulator:
         target_id = self.model.body("target").id
         self.model.body_pos[target_id] = target_pos
 
+    def set_q_target(self, q_target: np.ndarray):
+        """设置目标关节角(非阻塞)"""
+        with self._lock:
+            self._q_target = q_target.copy()
+
+    def _simulation_loop(self):
+        """内部仿真循环"""
+        while self._running:
+            with self._lock:
+                if self._q_target is not None:
+                    self.data.ctrl[:self.arm_dof] = self._q_target
+            
+            mujoco.mj_step(self.model, self.data)
+            
+            if self.viewer is not None:
+                self.viewer.sync()
+            
+            time.sleep(self.dt)
+
+    def start(self):
+        """启动仿真器(后台运行)"""
+        if self._running:
+            return
+        
+        self._running = True
+        self._thread = threading.Thread(target=self._simulation_loop, daemon=True)
+        self._thread.start()
+
+    def stop(self):
+        """停止仿真器"""
+        self._running = False
+        if self._thread is not None:
+            self._thread.join()
+            self._thread = None
+
     def step(self, q_target: np.ndarray):
-        """ 更新仿真器 """
-        self.data.ctrl[:self.arm_dof] = q_target
-        mujoco.mj_step(self.model, self.data)
-        if self.viewer is not None:
-            self.viewer.sync()
+        """ [已废弃] 使用 set_q_target + start 替代 """
+        self.set_q_target(q_target)
 
     def launch(self):
         """启动可视化界面"""
-        return mujoco.viewer.launch_passive(self.model, self.data)
+        self.viewer = mujoco.viewer.launch_passive(self.model, self.data)
 
 
 # =========================
