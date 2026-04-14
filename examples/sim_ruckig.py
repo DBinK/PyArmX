@@ -7,6 +7,7 @@ from pyarmx.interp import RuckigPosePlanner
 from pyarmx.ik import IKSolver
 from pyarmx.sim import ArmSimulator, KeyboardController
 from pyarmx.utils.log import fmt_arr
+from pyarmx.utils.loops import Rate, Timer
 
 MODEL_PATH = "xml/mjcf/scene.xml"
 ARM_DOF = 6
@@ -51,7 +52,6 @@ planner.start()
 sim.viewer = sim.launch()
 
 # ================= 3. 主循环 =================
-last_print_time = 0.0
 
 # 用于记录键盘控制的“最终目标”，初始化为当前位置
 final_target_pos = init_pos.copy()
@@ -59,10 +59,12 @@ final_target_quat = init_quat.copy()
 
 print("[Sim] 系统就绪。使用键盘移动红色目标点，机械臂将平滑追踪。")
 
-while sim.viewer.is_running():
-    t_start = time.perf_counter()
+loop = Rate(hz=100)
+timer = Timer(duration=0.1)
 
-    # --- A. 输入层：键盘更新“最终目标” ---
+while sim.viewer.is_running() and loop.sleep():
+
+    # --- A. 输入层：键盘更新"最终目标" ---
     # controller.update 返回的是用户期望的最终位姿
     # 注意：这里我们只更新变量，不直接发给 IK
     new_target_pos, new_target_quat = controller.update(
@@ -86,10 +88,10 @@ while sim.viewer.is_running():
     # print(f"\n[Debug] set_target called! pos_diff={pos_diff:.4f}, quat_diff={quat_diff:.6f}")
 
 
-    # 可视化：显示用户设定的“最终目标”
+    # 可视化：显示用户设定的"最终目标"
     sim.update_target_dot(final_target_pos)
 
-    # --- B. 规划层：获取当前时刻的“平滑中间点” ---
+    # --- B. 规划层：获取当前时刻的"平滑中间点" ---
     # 从 Planner 获取这一帧应该到达的位姿
     smooth_pose = planner.get_pose(block=False, timeout=0)
     
@@ -116,8 +118,7 @@ while sim.viewer.is_running():
     q_current = q_command 
 
     # --- D. 监控日志 ---
-    now = time.perf_counter()
-    if now - last_print_time > 0.1:
+    if timer.done:
         # 计算误差：实际位姿 vs 平滑轨迹点
         current_actual_pos, current_actual_quat = sim.get_fk_quat(q_current)
         
@@ -133,10 +134,4 @@ while sim.viewer.is_running():
             f"\rTrack Err P:{p_err:.4f} R:{r_err:.4f} | Target P:{fmt_arr(final_target_pos)}",
             end="",
         )
-        last_print_time = now
-
-    # --- E. 帧率控制 ---
-    elapsed = time.perf_counter() - t_start
-    sleep_time = max(0.0, sim.dt - elapsed)
-    if sleep_time > 0:
-        time.sleep(sleep_time)
+        timer.reset()

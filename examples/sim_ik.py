@@ -9,6 +9,8 @@ from pyarmx.sim import ArmSimulator, KeyboardController
 from scipy.spatial.transform import Rotation as R
 
 from pyarmx.utils.log import fmt_arr
+from pyarmx.utils.log import fmt_arr
+from pyarmx.utils.loops import Rate, Timer
 
 
 
@@ -37,10 +39,10 @@ target_quat = np.array([0.006, -0.005, -0.022, 1.000])  # [x, y, z, w] 格式
 sim.viewer = sim.launch()
 
 # 主循环
-last_print_time = 0.0
-while sim.viewer.is_running():
+loop = Rate(hz=100)
+timer = Timer(duration=0.1)
 
-    t_start = time.perf_counter()  # 获取循环开始时间戳, 稍后用于帧率控制
+while sim.viewer.is_running() and loop.sleep():
 
     # 输入层
     target_pos, target_quat = controller.update(
@@ -58,8 +60,7 @@ while sim.viewer.is_running():
     q_current = q_command 
 
     # 监控
-    now = time.perf_counter()
-    if now - last_print_time > 0.1:
+    if timer.done:
         current_rot = sim.data.site_xmat[sim.site_id].reshape(3, 3)
         target_rot = R.from_quat(target_quat).as_matrix()
 
@@ -75,10 +76,5 @@ while sim.viewer.is_running():
             end="",
         )
         # print(f"\rPos Err: {p_err:.4f} | Rot Err: {r_err:.4f}", end="")
-        last_print_time = now
-
-    # 帧率控制
-    sleep_time = max(0.0, sim.dt - (time.perf_counter() - t_start))
-    if sleep_time > 0:
-        time.sleep(sleep_time)
-
+        
+        timer.reset()
