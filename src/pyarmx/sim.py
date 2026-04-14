@@ -24,6 +24,8 @@ class ArmSimulator:
 
         self.viewer: mujoco.viewer.Handle | None = None
 
+        self.q_target = np.zeros(self.arm_dof)
+
         mujoco.mj_forward(self.model, self.data)  # 获取初始状态
 
     def get_q_current(self):
@@ -71,15 +73,17 @@ class ArmSimulator:
     def set_q_target(self, q_target: np.ndarray):
         """设置目标关节角"""
         self.q_target = q_target.copy()
+        print("q_target:", q_target)
     
     def start(self):
-        self.start_thread = threading.Thread(target=self._loop)
+        self.start_thread = threading.Thread(target=self._loop, daemon=True)
+        self.start_thread.start()
 
     def _loop(self):
         self.viewer = self.launch()
         while self.viewer.is_running():
-            self.step(self.data.qpos[:self.arm_dof])
-    
+            self.step(self.q_target)
+            # time.sleep(self.dt)
 
 
 # =========================
@@ -125,3 +129,18 @@ class KeyboardController:
             target_quat = new_R.as_quat()
             target_quat /= np.linalg.norm(target_quat)
         return target_pos, target_quat
+
+
+if __name__ == "__main__":
+    MODEL_PATH = "xml/mjcf/scene.xml"
+
+    sim = ArmSimulator(MODEL_PATH)
+
+    sim.viewer = sim.launch()  # 启动仿真 
+    
+    q_command = np.asanyarray([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    
+    while True:
+        # sim.step(sim.get_q_current())
+        sim.set_q_target(q_command)
+        time.sleep(0.01)

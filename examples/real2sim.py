@@ -30,8 +30,7 @@ manager.set_teach_mode()
 MODEL_PATH = "xml/mjcf/scene.xml"
 
 sim = ArmSimulator(MODEL_PATH)
-sim.viewer = sim.launch()  # 启动仿真 
-
+sim.start()
 
 # --- 主循环 --- #
 loop = Rate(hz=100)
@@ -39,11 +38,12 @@ timer = Timer(duration=0.5)
 
 i = 0.01
 
-while sim.viewer.is_running() and loop.sleep():
+# while sim.viewer.is_running() and loop.sleep():
+while loop.sleep():
 
     manager.set_teach_mode(False)
     q_command = manager.get_joints_pos_list()
-    
+
     # bs = np.sin(i:=i + 0.02)
     # q_command = np.asanyarray([bs, 0.0, 0.0, 0.0, 0.0, 0.0])
     # q_command = [0.0] * 6
@@ -51,11 +51,8 @@ while sim.viewer.is_running() and loop.sleep():
     q_command_str = fmt_arr(q_command)
     # q_command_str = ""
 
-    sim.step(np.asanyarray(q_command))
     # sim.step(np.asanyarray(q_command))
-    # sim.step(np.asanyarray(q_command))
-    # sim.step(np.asanyarray(q_command))
-    # sim.step(np.asanyarray(q_command))
+    sim.set_q_target(np.asanyarray(q_command))
 
     q_current = sim.get_q_current()
     q_current_str = fmt_arr(q_current)
