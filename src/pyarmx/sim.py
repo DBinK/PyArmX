@@ -78,6 +78,7 @@ class ArmSimulator:
     def start(self):
         self.start_thread = threading.Thread(target=self._loop, daemon=True)
         self.start_thread.start()
+        time.sleep(1.0)
 
     def _loop(self):
         self.viewer = self.launch()

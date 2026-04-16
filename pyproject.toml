@@ -35,6 +35,7 @@ pydamiao = { path = "../pydamiao" }
 
 [dependency-groups]
 dev = [
+    "onshape-to-robot>=1.8.2",
     "pybind11-stubgen>=2.5.5",
 ]
 

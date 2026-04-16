@@ -11,9 +11,23 @@ from scipy.spatial.transform import Rotation as R
 from pyarmx.utils.log import fmt_arr
 from pyarmx.utils.loops import Rate, Timer
 
+# from pydamiao.bus import SerialBus
+# from pydamiao.arm.config import joint_cfgs
+# from pydamiao.arm.joint import JointManager
 
-# MODEL_PATH = "xml/mjcf/scene.xml"
-MODEL_PATH = "xml/L80/scene.xml"
+# # --- 真实机械臂 --- #
+# bus = SerialBus("COM9", baudrate=921600, timeout=0.01)
+# manager = JointManager(bus)
+
+# # 注册joint
+# manager.register(joint_cfgs)
+
+# # 设置初始状态
+# manager.clean_error()
+# manager.enable()
+# manager.set_teach_mode()
+
+MODEL_PATH = "xml/mjcf/scene.xml"
 ARM_DOF = 6 
 
 sim = ArmSimulator(MODEL_PATH, arm_dof=ARM_DOF)
@@ -35,8 +49,7 @@ target_pos = np.array([0.008, 0.072, 0.086])
 target_quat = np.array([0.006, -0.005, -0.022, 1.000])  # [x, y, z, w] 格式
 
 # 启动仿真
-sim.viewer = sim.launch()
-# sim.start()
+sim.start()
 
 # 主循环
 loop = Rate(hz=100)
@@ -54,8 +67,7 @@ while sim.viewer.is_running() and loop.sleep(): # type: ignore
 
     # IK + 控制
     q_command = ik_solver.solve(q_current, target_pos, target_quat)
-    sim.step(q_command)
-    # sim.set_q_target(q_command)
+    sim.set_q_target(q_command)
 
     # 更新当前状态, 此处仿真直接用 q_command , 真机可以考虑用真实的 q_current
     q_current = q_command 
