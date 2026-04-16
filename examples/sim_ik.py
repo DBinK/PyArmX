@@ -25,7 +25,7 @@ ik_solver = IKSolver(
     arm_dof=ARM_DOF,
     q_min=sim.model.jnt_range[:ARM_DOF, 0].copy(),
     q_max=sim.model.jnt_range[:ARM_DOF, 1].copy(),
-    rot_weight=0.1115,
+    rot_weight=0.15,
 )
 
 # 初始状态
