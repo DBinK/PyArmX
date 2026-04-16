@@ -4,7 +4,8 @@ import time
 import numpy as np
 
 from pyarmx.ik import IKSolver
-from pyarmx.sim import ArmSimulator, KeyboardController
+from pyarmx.sim import ArmSimulator
+from pyarmx.input import KeyboardController
 
 from scipy.spatial.transform import Rotation as R
 

@@ -4,7 +4,8 @@ import time
 import numpy as np
 
 from pyarmx.ik import IKSolver
-from pyarmx.sim import ArmSimulator, KeyboardController
+from pyarmx.sim import ArmSimulator
+from pyarmx.input import KeyboardController
 
 from scipy.spatial.transform import Rotation as R
 
@@ -31,8 +32,8 @@ ik_solver = IKSolver(
 q_current = sim.get_q_current()
 target_pos, target_quat = sim.get_fk_quat(q_current)
 
-target_pos = np.array([0.008, 0.072, 0.086])
-target_quat = np.array([0.006, -0.005, -0.022, 1.000])  # [x, y, z, w] 格式
+target_pos = np.array([0.01, 0.070, 0.080])
+target_quat = np.array([0.006, -0.005, -0.022, 1.000])   # 朝下   # [x, y, z, w] 格式
 
 # 启动仿真
 sim.viewer = sim.launch()
