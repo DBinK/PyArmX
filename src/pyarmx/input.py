@@ -3,6 +3,24 @@ import keyboard
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
+
+class PlaybackInput:
+    def __init__(self):
+        self.pause = False
+        self._last_state = False
+    
+    def update(self):
+        """键盘输入 -> 暂停（带消抖）"""
+        key_pressed = keyboard.is_pressed("\\")
+        
+        # 只在按键刚按下时切换
+        if key_pressed and not self._last_state:
+            self.pause = not self.pause
+        
+        self._last_state = key_pressed
+        return self.pause
+
+
 class PoseInput:
     def __init__(self, target_speed=0.15, rot_speed=1.0):
         self.target_speed = target_speed
@@ -41,7 +59,9 @@ class PoseInput:
             new_R = delta_R * current_R
             target_quat = new_R.as_quat()
             target_quat /= np.linalg.norm(target_quat)
+
         return target_pos, target_quat
+
 
 class JointInput:
     def __init__(self, joint_speed=0.5):

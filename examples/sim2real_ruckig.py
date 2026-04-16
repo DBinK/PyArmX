@@ -6,7 +6,7 @@ import numpy as np
 from pyarmx.ik import IKSolver
 from pyarmx.interp import RuckigPosePlanner
 from pyarmx.sim import ArmSimulator
-from pyarmx.input import PoseInput
+from pyarmx.input import PoseInput, PlaybackInput
 
 from scipy.spatial.transform import Rotation as R
 
@@ -38,7 +38,9 @@ MODEL_PATH = "xml/L20/scene.xml"
 ARM_DOF = 6
 
 sim = ArmSimulator(MODEL_PATH, arm_dof=ARM_DOF)
-controller = PoseInput()
+
+pose_input = PoseInput()
+playback = PlaybackInput()
 
 ik_solver = IKSolver(
     fk_func=sim.get_fk_mat,
@@ -46,14 +48,14 @@ ik_solver = IKSolver(
     arm_dof=ARM_DOF,
     q_min=sim.model.jnt_range[:ARM_DOF, 0].copy(),
     q_max=sim.model.jnt_range[:ARM_DOF, 1].copy(),
-    rot_weight=0.1115,
+    rot_weight=0.15,
 )
 
 # 初始化 Ruckig 规划器
-planner = RuckigPosePlanner(control_period=sim.dt, buffer_size=100) 
+planner = RuckigPosePlanner(buffer_size=10) 
 
 # 初始位姿
-q_current = np.zeros(ARM_DOF)
+q_current = np.asanyarray(manager.get_joints_pos_list())
 init_pos = np.array([0.008, 0.072, 0.086])
 init_quat = np.array([0.006, -0.005, -0.022, 1.000])
 init_pose_7d = np.concatenate([init_pos, init_quat])
@@ -75,7 +77,7 @@ timer = Timer(duration=0.1)
 while sim.viewer.is_running() and loop.sleep():
 
     # 更新最终目标
-    new_target_pos, new_target_quat = controller.update(
+    new_target_pos, new_target_quat = pose_input.update(
         final_target_pos, final_target_quat, sim.dt
     )
     
@@ -89,7 +91,7 @@ while sim.viewer.is_running() and loop.sleep():
         target_7d = np.concatenate([final_target_pos, final_target_quat])
         planner.set_target(target_7d)
         
-    sim.update_target_dot(final_target_pos)
+    sim.update_target_dot(new_target_pos)
 
     # 获取平滑轨迹点
     smooth_pose = planner.get_pose(block=False, timeout=0)
@@ -97,17 +99,21 @@ while sim.viewer.is_running() and loop.sleep():
     if smooth_pose is None:
         exec_pos, exec_quat = sim.get_fk_quat(q_current)
     else:
-        exec_pos = smooth_pose[:3]
+        exec_pos  = smooth_pose[:3]
         exec_quat = smooth_pose[3:]
 
     # IK 求解并执行
     q_command = ik_solver.solve(q_current, exec_pos, exec_quat)
-    
-    if q_command is None or np.any(np.isnan(q_command)):
+    if q_command is None or np.any(np.isnan(q_command)):  # 检测是否异常
         q_command = q_current
-        
-    sim.step(q_command)
-    manager.set_pos_list(q_command.tolist(), ControlMode.POS_VEL)
+    
+    # 设置关节
+    if pause := playback.update():  # 暂停
+        sim.step(q_command)
+        manager.set_pos_list(q_command.tolist(), ControlMode.POS_VEL)
+    else:
+        sim.step(sim.get_q_current())
+        # sim.viewer.sync()
 
     # 更新当前状态, 此处直接用 q_command , 真机可以考虑用真实的 q_current
     q_current = q_command 
