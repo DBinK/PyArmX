@@ -5,7 +5,7 @@ import numpy as np
 
 from pyarmx.ik import IKSolver
 from pyarmx.sim import ArmSimulator
-from pyarmx.input import KeyboardController
+from pyarmx.input import PoseInput
 
 from scipy.spatial.transform import Rotation as R
 
@@ -18,7 +18,7 @@ MODEL_PATH = "xml/L80/scene.xml"
 ARM_DOF = 6 
 
 sim = ArmSimulator(MODEL_PATH, arm_dof=ARM_DOF)
-controller = KeyboardController()
+controller = PoseInput()
 ik_solver = IKSolver(
     fk_func=sim.get_fk_mat,
     jac_func=sim.get_jacobian,
