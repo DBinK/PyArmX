@@ -42,24 +42,24 @@ i = 0.01
 while loop.sleep():
 
     manager.set_teach_mode(False)
-    q_command = manager.get_joints_pos_list()
+    q_real = manager.get_joints_pos_list()
 
     # bs = np.sin(i:=i + 0.02)
     # q_command = np.asanyarray([bs, 0.0, 0.0, 0.0, 0.0, 0.0])
     # q_command = [0.0] * 6
 
-    q_command_str = fmt_arr(q_command)
+    q_real_str = fmt_arr(q_real)
     # q_command_str = ""
 
     # sim.step(np.asanyarray(q_command))
-    sim.set_q_target(np.asanyarray(q_command))
+    sim.set_q_target(np.asanyarray(q_real))
 
-    q_current = sim.get_q_current()
-    q_current_str = fmt_arr(q_current)
+    q_sim = sim.get_q_current()
+    q_sim_str = fmt_arr(q_sim)
 
     # q_current_str = ""
 
-    print(f"Q: {q_command_str}, Q_current: {q_current_str}, on_time: {loop.tick.delta:.6f} {loop.tick.on_time} ")
+    print(f"{q_real_str=}, {q_sim_str=}, on_time: {loop.tick.delta:.6f} {loop.tick.on_time}")
 
     # if timer.done:  # 限频打印
     #     q_str = fmt_arr(q_command)
