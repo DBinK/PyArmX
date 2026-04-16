@@ -27,9 +27,9 @@ manager.register(joint_cfgs)
 # 设置初始状态
 manager.clean_error()
 manager.enable()
-# manager.set_teach_mode()
+manager.set_teach_mode()
 # manager.set_mode(ControlMode.POS_FORCE)
-manager.set_mode(ControlMode.POS_VEL)
+# manager.set_mode(ControlMode.POS_VEL)
 
 MODEL_PATH = "xml/L20/scene.xml"
 ARM_DOF = 6 
@@ -70,12 +70,14 @@ while sim.viewer.is_running() and loop.sleep(): # type: ignore
     # 步进仿真
     sim.step(q_target)
 
-    manager.set_pos_list(q_target.tolist(), ControlMode.POS_VEL)
+    # manager.set_pos_list(q_target.tolist(), ControlMode.POS_VEL)
+    manager.set_teach_mode(False)
 
     # 更新当前状态, 此处仿真直接用 q_command , 真机可以考虑用真实的 q_current
     q_current = q_target 
 
     # 监控
     if timer.done:
-        print(f"\rq_target: {fmt_arr(q_target)}", end="")
+        # print(f"\r q_target: {fmt_arr(q_target)}", end="")
+        print(f"\r q_target: {fmt_arr(q_target)}, {fmt_arr(manager.get_joints_pos_list())}, {fmt_arr(sim.get_q_current())}", end="")
         timer.reset()
