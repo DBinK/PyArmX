@@ -112,11 +112,10 @@ while sim.viewer.is_running() and loop.sleep():
         sim.step(q_command)
         manager.set_pos_list(q_command.tolist(), ControlMode.POS_VEL)
     else:
-        sim.step(sim.get_q_current())
-        # sim.viewer.sync()
+        sim.viewer.sync()
 
     # 更新当前状态, 此处直接用 q_command , 真机可以考虑用真实的 q_current
-    q_current = q_command 
+    q_current = sim.get_q_current() 
 
     # 监控日志
     if timer.done:
