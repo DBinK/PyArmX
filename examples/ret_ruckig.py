@@ -90,7 +90,7 @@ timer = Timer(duration=0.1)
 switch_timer = Timer(duration=2.0)
 
 rec_timer = Timer(duration=20.0)
-torque_list = []
+rec_data = []
 
 while sim.viewer.is_running() and loop.sleep():
 
@@ -163,16 +163,16 @@ while sim.viewer.is_running() and loop.sleep():
 
     
     # 记录力矩变化
-    elbow_torque = manager.get_joints_torque()[JointID.elbow]
-    print(f"{elbow_torque}")
-
     if rec_timer.done:
         import csv 
         with open("tmp/torque_ig.csv", "w", newline="") as f:
             writer = csv.writer(f)
-            for torque_data in torque_list:
-                writer.writerow([torque_data])
+            for motor_state in rec_data:
+                writer.writerow(motor_state)
         break
     else:
-        torque_list.append(elbow_torque)
+        elbow = manager.get_joint_by_id(JointID.elbow)
+        pos, vel, torque = elbow.motor.get_state()
+
+        rec_data.append([pos, vel, torque])
         
