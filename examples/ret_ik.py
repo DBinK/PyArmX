@@ -1,4 +1,5 @@
 
+from math import e
 import time
 
 import numpy as np
@@ -13,7 +14,7 @@ from pyarmx.utils.log import fmt_arr
 from pyarmx.utils.loops import Rate, Timer
 
 from pydamiao.bus import SerialBus
-from pydamiao.arm.config import joint_cfgs
+from pydamiao.arm.config import joint_cfgs, JointID
 from pydamiao.arm.joint import JointManager
 from pydamiao.structs import ControlMode
 
@@ -56,8 +57,8 @@ target_pos = np.array([0.008, 0.072, 0.086])
 target_quat = np.array([0.006, -0.005, -0.022, 1.000])  # [x, y, z, w] 格式
 
 # 矩形参数
-dx = 0.04
-dy = 0.04
+dx = 0.00
+dy = 0.08
 ret_pos = np.array([
     [0.008, 0.072, 0.086],
     [0.008 + dx, 0.072, 0.086],
@@ -71,8 +72,13 @@ pos_i = 0  # 矩形位置索引
 sim.viewer = sim.launch()
 
 # 主循环
-loop = Rate(hz=100)
+loop = Rate(hz=1000)
 timer = Timer(duration=0.1)
+
+switch_timer = Timer(duration=2.0)
+
+rec_timer = Timer(duration=20.0)
+torque_list = []
 
 while sim.viewer.is_running() and loop.sleep(): # type: ignore
 
@@ -80,8 +86,11 @@ while sim.viewer.is_running() and loop.sleep(): # type: ignore
     # target_pos, target_quat = controller.update(
     #     target_pos, target_quat, sim.dt
     # )
-    if pause := playback.is_switch(): 
-        pos_i += 1
+
+    if switch_timer.done:
+        switch_timer.reset()
+    # if pause := playback.is_switch(): 
+        pos_i += 1 
         target_pos = ret_pos[pos_i % 4]
         print(f"切换到 {pos_i % 4} 号点")
 
@@ -99,26 +108,45 @@ while sim.viewer.is_running() and loop.sleep(): # type: ignore
         manager.set_pos_list(q_command.tolist(), ControlMode.POS_VEL)
     else:
         sim.viewer.sync()
+        rec_timer.reset()
 
     # 更新当前状态, 此处仿真直接用 q_command , 真机可以考虑用真实的 q_current
     q_current = sim.get_q_current() 
 
-    # 监控
-    if timer.done:
-        current_rot = sim.data.site_xmat[sim.site_id].reshape(3, 3)
-        target_rot = R.from_quat(target_quat).as_matrix()
-
-        r_err = np.linalg.norm(IKSolver._rotation_error(current_rot, target_rot))
-        p_err = np.linalg.norm(target_pos - sim.data.site_xpos[sim.site_id])
-
-        q_str = fmt_arr(q_current)
-        p_str = fmt_arr(target_pos)
-        quat_str = fmt_arr(target_quat)
-
-        print(
-            f"\rPos Err: {p_err:.4f} | Rot Err: {r_err:.4f} | Q: {q_str} | P: {p_str} | Quat: {quat_str} {8 * ' '}",
-            end="",
-        )
-        # print(f"\rPos Err: {p_err:.4f} | Rot Err: {r_err:.4f}", end="")
         
-        timer.reset()
+
+    # 监控
+    # if timer.done:
+    #     current_rot = sim.data.site_xmat[sim.site_id].reshape(3, 3)
+    #     target_rot = R.from_quat(target_quat).as_matrix()
+
+    #     r_err = np.linalg.norm(IKSolver._rotation_error(current_rot, target_rot))
+    #     p_err = np.linalg.norm(target_pos - sim.data.site_xpos[sim.site_id])
+
+    #     q_str = fmt_arr(q_current)
+    #     p_str = fmt_arr(target_pos)
+    #     quat_str = fmt_arr(target_quat)
+
+    #     print(
+    #         f"\rPos Err: {p_err:.4f} | Rot Err: {r_err:.4f} | Q: {q_str} | P: {p_str} | Quat: {quat_str} {8 * ' '}",
+    #         end="",
+    #     )
+    #     # print(f"\rPos Err: {p_err:.4f} | Rot Err: {r_err:.4f}", end="")
+        
+    #     timer.reset()
+
+
+    # 记录力矩变化
+    elbow_torque = manager.get_joints_torque()[JointID.elbow]
+    print(f"{elbow_torque}")
+
+    if rec_timer.done:
+        import csv 
+        with open("tmp/torque_ik.csv", "w", newline="") as f:
+            writer = csv.writer(f)
+            for torque_data in torque_list:
+                writer.writerow([torque_data])
+        break
+    else:
+        torque_list.append(elbow_torque)
+        

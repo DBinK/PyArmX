@@ -14,7 +14,7 @@ from pyarmx.utils.log import fmt_arr
 from pyarmx.utils.loops import Rate, Timer
 
 from pydamiao.bus import SerialBus
-from pydamiao.arm.config import joint_cfgs
+from pydamiao.arm.config import JointID, joint_cfgs
 from pydamiao.arm.joint import JointManager
 from pydamiao.structs import ControlMode
 
@@ -52,7 +52,7 @@ ik_solver = IKSolver(
 )
 
 # 初始化 Ruckig 规划器
-planner = RuckigPosePlanner(buffer_size=10) 
+planner = RuckigPosePlanner(buffer_size=100) 
 
 # 初始位姿
 q_current = np.asanyarray(manager.get_joints_pos_list())
@@ -67,8 +67,8 @@ sim.viewer = sim.launch()
 
 
 # 矩形参数
-dx = 0.04
-dy = 0.04
+dx = 0.00
+dy = 0.08
 ret_pos = np.array([
     [0.008, 0.072, 0.086],
     [0.008 + dx, 0.072, 0.086],
@@ -84,8 +84,13 @@ final_target_quat = init_quat.copy()
 
 print("[Sim] 系统就绪。使用键盘移动红色目标点，机械臂将平滑追踪。")
 
-loop = Rate(hz=100)
+loop = Rate(hz=1000)
 timer = Timer(duration=0.1)
+
+switch_timer = Timer(duration=2.0)
+
+rec_timer = Timer(duration=20.0)
+torque_list = []
 
 while sim.viewer.is_running() and loop.sleep():
 
@@ -96,7 +101,9 @@ while sim.viewer.is_running() and loop.sleep():
     new_target_pos = final_target_pos
     new_target_quat = final_target_quat
 
-    if pause := playback.is_switch(): 
+    if switch_timer.done:
+        switch_timer.reset()
+    # if pause := playback.is_switch(): 
         pos_i += 1
         new_target_pos = ret_pos[pos_i % 4]
         print(f"切换到 {pos_i % 4} 号点")
@@ -133,22 +140,39 @@ while sim.viewer.is_running() and loop.sleep():
         manager.set_pos_list(q_command.tolist(), ControlMode.POS_VEL)
     else:
         sim.viewer.sync()
+        rec_timer.reset()
 
     # 更新当前状态, 此处直接用 q_command , 真机可以考虑用真实的 q_current
     q_current = sim.get_q_current() 
 
-    # 监控日志
-    if timer.done:
-        current_actual_pos, current_actual_quat = sim.get_fk_quat(q_current)
+    # # 监控日志
+    # if timer.done:
+    #     current_actual_pos, current_actual_quat = sim.get_fk_quat(q_current)
         
-        p_err = np.linalg.norm(exec_pos - current_actual_pos)
+    #     p_err = np.linalg.norm(exec_pos - current_actual_pos)
         
-        current_rot = R.from_quat(current_actual_quat).as_matrix()
-        target_rot = R.from_quat(exec_quat).as_matrix()
-        r_err = np.linalg.norm(IKSolver._rotation_error(current_rot, target_rot))
+    #     current_rot = R.from_quat(current_actual_quat).as_matrix()
+    #     target_rot = R.from_quat(exec_quat).as_matrix()
+    #     r_err = np.linalg.norm(IKSolver._rotation_error(current_rot, target_rot))
 
-        print(
-            f"\rTrack Err P:{p_err:.4f} R:{r_err:.4f} | Target P:{fmt_arr(final_target_pos)}",
-            end="",
-        )
-        timer.reset()
+    #     print(
+    #         f"\rTrack Err P:{p_err:.4f} R:{r_err:.4f} | Target P:{fmt_arr(final_target_pos)}",
+    #         end="",
+    #     )
+    #     timer.reset()
+
+    
+    # 记录力矩变化
+    elbow_torque = manager.get_joints_torque()[JointID.elbow]
+    print(f"{elbow_torque}")
+
+    if rec_timer.done:
+        import csv 
+        with open("tmp/torque_ig.csv", "w", newline="") as f:
+            writer = csv.writer(f)
+            for torque_data in torque_list:
+                writer.writerow([torque_data])
+        break
+    else:
+        torque_list.append(elbow_torque)
+        
