@@ -65,6 +65,19 @@ planner.start()
 
 sim.viewer = sim.launch()
 
+
+# 矩形参数
+dx = 0.04
+dy = 0.04
+ret_pos = np.array([
+    [0.008, 0.072, 0.086],
+    [0.008 + dx, 0.072, 0.086],
+    [0.008 + dx, 0.072 + dy, 0.086],
+    [0.008, 0.072 + dy, 0.086],
+])
+pos_i = 0  # 矩形位置索引
+
+
 # 主循环
 final_target_pos = init_pos.copy()
 final_target_quat = init_quat.copy()
@@ -77,9 +90,16 @@ timer = Timer(duration=0.1)
 while sim.viewer.is_running() and loop.sleep():
 
     # 更新最终目标
-    new_target_pos, new_target_quat = pose_input.update(
-        final_target_pos, final_target_quat, sim.dt
-    )
+    # new_target_pos, new_target_quat = pose_input.update(
+    #     final_target_pos, final_target_quat, sim.dt
+    # )
+    new_target_pos = final_target_pos
+    new_target_quat = final_target_quat
+
+    if pause := playback.is_switch(): 
+        pos_i += 1
+        new_target_pos = ret_pos[pos_i % 4]
+        print(f"切换到 {pos_i % 4} 号点")
     
     pos_diff = np.linalg.norm(new_target_pos - final_target_pos)
     quat_diff = 1.0 - np.abs(np.dot(new_target_quat, final_target_quat))

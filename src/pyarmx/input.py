@@ -7,19 +7,28 @@ from scipy.spatial.transform import Rotation as R
 class PlaybackInput:
     def __init__(self):
         self.pause = False
-        self._last_state = False
+        self._key_states = {}
     
-    def update(self):
+    def _check_key_with_debounce(self, key_name):
+        """通用消抖检查：只在按键刚按下时返回 True"""
+        key_pressed = keyboard.is_pressed(key_name)
+        last_state = self._key_states.get(key_name, False)
+        
+        result = key_pressed and not last_state
+        
+        self._key_states[key_name] = key_pressed
+        return result
+    
+    def is_pause(self):
         """键盘输入 -> 暂停（带消抖）"""
-        key_pressed = keyboard.is_pressed("\\")
-        
-        # 只在按键刚按下时切换
-        if key_pressed and not self._last_state:
+        if self._check_key_with_debounce("\\"):
             self.pause = not self.pause
-        
-        self._last_state = key_pressed
         return self.pause
 
+    def is_switch(self):
+        """键盘输入 -> 切换模式（带消抖）"""
+        return self._check_key_with_debounce("enter")
+    
 
 class PoseInput:
     def __init__(self, target_speed=0.15, rot_speed=1.0):

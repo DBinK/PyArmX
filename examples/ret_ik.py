@@ -55,6 +55,17 @@ target_pos, target_quat = sim.get_fk_quat(q_current)
 target_pos = np.array([0.008, 0.072, 0.086])
 target_quat = np.array([0.006, -0.005, -0.022, 1.000])  # [x, y, z, w] 格式
 
+# 矩形参数
+dx = 0.04
+dy = 0.04
+ret_pos = np.array([
+    [0.008, 0.072, 0.086],
+    [0.008 + dx, 0.072, 0.086],
+    [0.008 + dx, 0.072 + dy, 0.086],
+    [0.008, 0.072 + dy, 0.086],
+])
+pos_i = 0  # 矩形位置索引
+
 # 启动仿真
 # sim.start()
 sim.viewer = sim.launch()
@@ -66,15 +77,18 @@ timer = Timer(duration=0.1)
 while sim.viewer.is_running() and loop.sleep(): # type: ignore
 
     # 输入层
-    target_pos, target_quat = controller.update(
-        target_pos, target_quat, sim.dt
-    )
+    # target_pos, target_quat = controller.update(
+    #     target_pos, target_quat, sim.dt
+    # )
+    if pause := playback.is_switch(): 
+        pos_i += 1
+        target_pos = ret_pos[pos_i % 4]
+        print(f"切换到 {pos_i % 4} 号点")
 
     # 目标点可视化
     sim.update_target_dot(target_pos)
 
     # IK + 控制
-    # IK 求解并执行
     q_command = ik_solver.solve(q_current, target_pos, target_quat)
     if q_command is None or np.any(np.isnan(q_command)):  # 检测是否异常
         q_command = q_current
@@ -85,6 +99,7 @@ while sim.viewer.is_running() and loop.sleep(): # type: ignore
         manager.set_pos_list(q_command.tolist(), ControlMode.POS_VEL)
     else:
         sim.viewer.sync()
+
     # 更新当前状态, 此处仿真直接用 q_command , 真机可以考虑用真实的 q_current
     q_current = sim.get_q_current() 
 
