@@ -41,7 +41,7 @@ i = 0.01
 # while sim.viewer.is_running() and loop.sleep():
 while loop.sleep():
 
-    manager.set_teach_mode(False)
+    manager.set_mit_zero() 
     q_real = manager.get_joints_pos_list()
 
     # bs = np.sin(i:=i + 0.02)

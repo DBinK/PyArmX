@@ -71,7 +71,7 @@ while sim.viewer.is_running() and loop.sleep(): # type: ignore
     sim.step(q_target)
 
     # manager.set_pos_list(q_target.tolist(), ControlMode.POS_VEL)
-    manager.set_teach_mode(False)
+    manager.set_mit_zero()
 
     # 更新当前状态, 此处仿真直接用 q_command , 真机可以考虑用真实的 q_current
     q_current = q_target 
