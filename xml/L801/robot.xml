@@ -1,0 +1,172 @@
+<?xml version="1.0" ?>
+<!-- Generated using onshape-to-robot -->
+<!-- Onshape https://cad.onshape.com/documents/bf6e0747e0cd899219ac657c/w/82278f0897f383a99388b3fa/e/2e25f6a46f62bf396b7a318e -->
+<mujoco model="pydmL">
+  <compiler angle="radian" meshdir="assets" autolimits="true"/>
+  <default>
+    <default class="pydmL">
+      <joint frictionloss="0.1" armature="0.005"/>
+      <position kp="500" dampratio="1"/>
+      <default class="visual">
+        <geom type="mesh" contype="0" conaffinity="0" group="2"/>
+      </default>
+      <default class="collision">
+        <geom group="3"/>
+      </default>
+    </default>
+  </default>
+  <worldbody>
+    <body name="target" pos="0 0 0">
+      <geom type="sphere" size="0.005" rgba="0 0.8 0 1"/>
+    </body>
+    <!-- Link broad -->
+    <body name="broad" pos="0 0 0" quat="1 0 0 0" childclass="pydmL">
+      <inertial pos="-1.5743e-08 -8.67484e-05 0.0242348" mass="1.04351" fullinertia="0.00076785 0.000766062 0.000896953 -1.45834e-07 -3.03e-10 -1.87157e-06"/>
+      <!-- Part dm_4340_motor -->
+      <geom type="mesh" class="visual" pos="0 0 0.05325" quat="0.707107 -0.707107 0 0" mesh="dm_4340_motor" material="dm_4340_motor_material"/>
+      <geom type="mesh" class="collision" pos="0 0 0.05325" quat="0.707107 -0.707107 0 0" mesh="dm_4340_motor" material="dm_4340_motor_material"/>
+      <!-- Part broad -->
+      <geom type="mesh" class="visual" pos="-0.0285 -0.0285 -0.004" quat="0.707107 -0 0.707107 -0" mesh="broad" material="broad_material"/>
+      <geom type="mesh" class="collision" pos="-0.0285 -0.0285 -0.004" quat="0.707107 -0 0.707107 -0" mesh="broad" material="broad_material"/>
+      <!-- Part dm_4340_cover -->
+      <geom type="mesh" class="visual" pos="0 0 0.05325" quat="0.707107 -0.707107 0 0" mesh="dm_4340_cover" material="dm_4340_cover_material"/>
+      <geom type="mesh" class="collision" pos="0 0 0.05325" quat="0.707107 -0.707107 0 0" mesh="dm_4340_cover" material="dm_4340_cover_material"/>
+      <!-- Link l_link -->
+      <body name="l_link" pos="0 0 0.0533" quat="0 -0.707107 0.707107 -0">
+        <!-- Joint from broad to l_link -->
+        <joint axis="0 0 1" name="base" type="hinge" range="-3.141592653589793 3.141592653589793"/>
+        <inertial pos="-1.5575e-08 -0.00424509 -0.0387974" mass="1.05474" fullinertia="0.000581624 0.000537958 0.000469188 -3.36e-10 1.45774e-07 3.48355e-05"/>
+        <!-- Part l_link -->
+        <geom type="mesh" class="visual" pos="-0.0285 -0.0305 -0.004" quat="0.5 -0.5 -0.5 -0.5" mesh="l_link" material="l_link_material"/>
+        <geom type="mesh" class="collision" pos="-0.0285 -0.0305 -0.004" quat="0.5 -0.5 -0.5 -0.5" mesh="l_link" material="l_link_material"/>
+        <!-- Part dm_4340_motor_2 -->
+        <geom type="mesh" class="visual" pos="0 0.02275 -0.0425" quat="0 -1 -0 -0" mesh="dm_4340_motor" material="dm_4340_motor_material"/>
+        <geom type="mesh" class="collision" pos="0 0.02275 -0.0425" quat="0 -1 -0 -0" mesh="dm_4340_motor" material="dm_4340_motor_material"/>
+        <!-- Part dm_4340_cover_2 -->
+        <geom type="mesh" class="visual" pos="0 0.02275 -0.0425" quat="0 -1 -0 -0" mesh="dm_4340_cover" material="dm_4340_cover_material"/>
+        <geom type="mesh" class="collision" pos="0 0.02275 -0.0425" quat="0 -1 -0 -0" mesh="dm_4340_cover" material="dm_4340_cover_material"/>
+        <!-- Link long_link -->
+        <body name="long_link" pos="0 0.0228 -0.0425" quat="0.707107 0.707107 -0 -0">
+          <!-- Joint from l_link to long_link -->
+          <joint axis="0 0 1" name="shoulder" type="hinge" range="-3.141592653589793 0.0"/>
+          <inertial pos="0.0685 -0 -0.002" mass="0.0398304" fullinertia="7.58759e-06 0.000113033 0.000120515 -0 0 0"/>
+          <!-- Part long_link -->
+          <geom type="mesh" class="visual" pos="0.1655 0.0285 0" quat="0 0 0 -1" mesh="long_link" material="long_link_material"/>
+          <geom type="mesh" class="collision" pos="0.1655 0.0285 0" quat="0 0 0 -1" mesh="long_link" material="long_link_material"/>
+          <!-- Link dm_4340_motor -->
+          <body name="dm_4340_motor" pos="0.137 -0 0" quat="0 -0 1 0">
+            <!-- Joint from long_link to dm_4340_motor -->
+            <joint axis="0 0 1" name="elbow" type="hinge" range="-3.1415926710415256 0.017453275068210792"/>
+            <inertial pos="-0.00412952 -0.0331055 -0.0241223" mass="1.85612" fullinertia="0.00281273 0.000886552 0.00272285 -0.000244665 -1.17356e-05 2.97086e-05"/>
+            <!-- Part l_link_2 -->
+            <geom type="mesh" class="visual" pos="-0.0305 -0.0935 -0.0573" quat="0.707107 -6.17e-09 0.707107 6.17e-09" mesh="l_link" material="l_link_material"/>
+            <geom type="mesh" class="collision" pos="-0.0305 -0.0935 -0.0573" quat="0.707107 -6.17e-09 0.707107 6.17e-09" mesh="l_link" material="l_link_material"/>
+            <!-- Part dm_4340_cover_3 -->
+            <geom type="mesh" class="visual" pos="-0 0 -5e-05" quat="0.707107 -0.707107 -6.171e-09 6.171e-09" mesh="dm_4340_cover" material="dm_4340_cover_material"/>
+            <geom type="mesh" class="collision" pos="-0 0 -5e-05" quat="0.707107 -0.707107 -6.171e-09 6.171e-09" mesh="dm_4340_cover" material="dm_4340_cover_material"/>
+            <!-- Part short_link -->
+            <geom type="mesh" class="visual" pos="0.0285 -0.0935 -0.0533" quat="0.707107 0 -0 0.707107" mesh="short_link" material="short_link_material"/>
+            <geom type="mesh" class="collision" pos="0.0285 -0.0935 -0.0533" quat="0.707107 0 -0 0.707107" mesh="short_link" material="short_link_material"/>
+            <!-- Part dm_4310_cover -->
+            <geom type="mesh" class="visual" pos="0.015 -0.0650125 -0.0189736" quat="0.5 -0.5 0.5 0.5" mesh="dm_4310_cover" material="dm_4310_cover_material"/>
+            <geom type="mesh" class="collision" pos="0.015 -0.0650125 -0.0189736" quat="0.5 -0.5 0.5 0.5" mesh="dm_4310_cover" material="dm_4310_cover_material"/>
+            <!-- Part dm_4340_motor_3 -->
+            <geom type="mesh" class="visual" pos="-0 0 -5e-05" quat="0.707107 -0.707107 -6.171e-09 6.171e-09" mesh="dm_4340_motor" material="dm_4340_motor_material"/>
+            <geom type="mesh" class="collision" pos="-0 0 -5e-05" quat="0.707107 -0.707107 -6.171e-09 6.171e-09" mesh="dm_4340_motor" material="dm_4340_motor_material"/>
+            <!-- Part dm_4310_adapter -->
+            <geom type="mesh" class="visual" pos="0.015 -0.0650125 -0.0189736" quat="0.5 -0.5 0.5 0.5" mesh="dm_4310_adapter" material="dm_4310_adapter_material"/>
+            <geom type="mesh" class="collision" pos="0.015 -0.0650125 -0.0189736" quat="0.5 -0.5 0.5 0.5" mesh="dm_4310_adapter" material="dm_4310_adapter_material"/>
+            <!-- Part dm_4310_motor -->
+            <geom type="mesh" class="visual" pos="0.015 -0.0650125 -0.0189736" quat="0.5 -0.5 0.5 0.5" mesh="dm_4310_motor" material="dm_4310_motor_material"/>
+            <geom type="mesh" class="collision" pos="0.015 -0.0650125 -0.0189736" quat="0.5 -0.5 0.5 0.5" mesh="dm_4310_motor" material="dm_4310_motor_material"/>
+            <!-- Link l_link_2 -->
+            <body name="l_link_2" pos="0.0155 -0.0650125 -0.0189736" quat="6.17e-09 0.707107 6.17e-09 -0.707107">
+              <!-- Joint from dm_4340_motor to l_link_2 -->
+              <joint axis="0 0 1" name="wrist_1" type="hinge" range="-3.1415926535892646 3.1415926535903216"/>
+              <inertial pos="0.00743051 -9.21972e-06 -0.110513" mass="1.03154" fullinertia="0.00110244 0.00109921 0.000390465 -1.8913e-08 3.9346e-05 4.0329e-08"/>
+              <!-- Part dm_4310_cover_2 -->
+              <geom type="mesh" class="visual" pos="-0.015 -1.24934e-05 -0.122326" quat="0.5 -0.5 -0.5 -0.5" mesh="dm_4310_cover" material="dm_4310_cover_material"/>
+              <geom type="mesh" class="collision" pos="-0.015 -1.24934e-05 -0.122326" quat="0.5 -0.5 -0.5 -0.5" mesh="dm_4310_cover" material="dm_4310_cover_material"/>
+              <!-- Part l_link_3 -->
+              <geom type="mesh" class="visual" pos="0.0305 -0.0285 -0.084" quat="0.707107 0 -0.707107 0" mesh="l_link" material="l_link_material"/>
+              <geom type="mesh" class="collision" pos="0.0305 -0.0285 -0.084" quat="0.707107 0 -0.707107 0" mesh="l_link" material="l_link_material"/>
+              <!-- Part dm_4310_adapter_2 -->
+              <geom type="mesh" class="visual" pos="-0.015 -1.24934e-05 -0.122326" quat="0.5 -0.5 -0.5 -0.5" mesh="dm_4310_adapter" material="dm_4310_adapter_material"/>
+              <geom type="mesh" class="collision" pos="-0.015 -1.24934e-05 -0.122326" quat="0.5 -0.5 -0.5 -0.5" mesh="dm_4310_adapter" material="dm_4310_adapter_material"/>
+              <!-- Part link_cylinder -->
+              <geom type="mesh" class="visual" pos="-0.0285 0.0305 0" quat="0.5 0.5 0.5 -0.5" mesh="link_cylinder" material="link_cylinder_material"/>
+              <geom type="mesh" class="collision" pos="-0.0285 0.0305 0" quat="0.5 0.5 0.5 -0.5" mesh="link_cylinder" material="link_cylinder_material"/>
+              <!-- Part dm_4310_motor_2 -->
+              <geom type="mesh" class="visual" pos="-0.015 -1.24934e-05 -0.122326" quat="0.5 -0.5 -0.5 -0.5" mesh="dm_4310_motor" material="dm_4310_motor_material"/>
+              <geom type="mesh" class="collision" pos="-0.015 -1.24934e-05 -0.122326" quat="0.5 -0.5 -0.5 -0.5" mesh="dm_4310_motor" material="dm_4310_motor_material"/>
+              <!-- Link l_link_3 -->
+              <body name="l_link_3" pos="-0.0155 -1.24934e-05 -0.122326" quat="0.707107 0 0.707107 0">
+                <!-- Joint from l_link_2 to l_link_3 -->
+                <joint axis="0 0 1" name="wrist_2" type="hinge" range="-1.7453292519943358 1.7453292519943233"/>
+                <inertial pos="0.0589152 -0.00025223 0.0116837" mass="0.949695" fullinertia="0.000455129 0.000734988 0.00066214 -1.80934e-07 -0.000165196 1.0685e-06"/>
+                <!-- Part l_link_4 -->
+                <geom type="mesh" class="visual" pos="0.0385 -0.0285 -0.015" quat="1 -0 -0 -0" mesh="l_link" material="l_link_material"/>
+                <geom type="mesh" class="collision" pos="0.0385 -0.0285 -0.015" quat="1 -0 -0 -0" mesh="l_link" material="l_link_material"/>
+                <!-- Part dm_4310_motor_3 -->
+                <geom type="mesh" class="visual" pos="0.088 -0.000173555 0.0155125" quat="0 -0.707107 0.707107 -0" mesh="dm_4310_motor" material="dm_4310_motor_material"/>
+                <geom type="mesh" class="collision" pos="0.088 -0.000173555 0.0155125" quat="0 -0.707107 0.707107 -0" mesh="dm_4310_motor" material="dm_4310_motor_material"/>
+                <!-- Part dm_4310_adapter_3 -->
+                <geom type="mesh" class="visual" pos="0.088 -0.000173555 0.0155125" quat="0 -0.707107 0.707107 -0" mesh="dm_4310_adapter" material="dm_4310_adapter_material"/>
+                <geom type="mesh" class="collision" pos="0.088 -0.000173555 0.0155125" quat="0 -0.707107 0.707107 -0" mesh="dm_4310_adapter" material="dm_4310_adapter_material"/>
+                <!-- Part dm_4310_cover_3 -->
+                <geom type="mesh" class="visual" pos="0.088 -0.000173555 0.0155125" quat="0 -0.707107 0.707107 -0" mesh="dm_4310_cover" material="dm_4310_cover_material"/>
+                <geom type="mesh" class="collision" pos="0.088 -0.000173555 0.0155125" quat="0 -0.707107 0.707107 -0" mesh="dm_4310_cover" material="dm_4310_cover_material"/>
+                <!-- Part link_cylinder_2 -->
+                <geom type="mesh" class="visual" pos="-0.0285 0.0305 -0" quat="0.5 0.5 0.5 -0.5" mesh="link_cylinder__2" material="link_cylinder__2_material"/>
+                <geom type="mesh" class="collision" pos="-0.0285 0.0305 -0" quat="0.5 0.5 0.5 -0.5" mesh="link_cylinder__2" material="link_cylinder__2_material"/>
+                <!-- Link l_link_4 -->
+                <body name="l_link_4" pos="0.0885 -0.000173555 0.0155125" quat="0.707107 0 -0.707107 0">
+                  <!-- Joint from l_link_3 to l_link_4 -->
+                  <joint axis="0 0 1" name="wrist_3" type="hinge" range="-3.1415926535897754 3.141592653589811"/>
+                  <inertial pos="-0 -0.0205837 -0.0179579" mass="0.155436" fullinertia="0.000102066 8.75509e-05 7.05877e-05 -0 -0 -2.95462e-05"/>
+                  <!-- Part l_link_5 -->
+                  <geom type="mesh" class="visual" pos="-0.0285 -0.0305 -0.004" quat="0.5 -0.5 -0.5 -0.5" mesh="l_link" material="l_link_material"/>
+                  <geom type="mesh" class="collision" pos="-0.0285 -0.0305 -0.004" quat="0.5 -0.5 -0.5 -0.5" mesh="l_link" material="l_link_material"/>
+                  <site name="ee" pos="0 -0.03 -0.07" size="0.005" rgba="1 0 0 1"/>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+  <asset>
+    <mesh file="link_cylinder__2.stl"/>
+    <mesh file="link_cylinder.stl"/>
+    <mesh file="dm_4340_motor.stl"/>
+    <mesh file="dm_4340_cover.stl"/>
+    <mesh file="l_link.stl"/>
+    <mesh file="dm_4310_cover.stl"/>
+    <mesh file="broad.stl"/>
+    <mesh file="long_link.stl"/>
+    <mesh file="dm_4310_motor.stl"/>
+    <mesh file="short_link.stl"/>
+    <mesh file="dm_4310_adapter.stl"/>
+    <material name="dm_4340_motor_material" rgba="0.262745 0.282353 0.301961 1"/>
+    <material name="broad_material" rgba="0.917647 0.917647 0.917647 1"/>
+    <material name="dm_4340_cover_material" rgba="0.439216 0.47451 0.501961 1"/>
+    <material name="l_link_material" rgba="0.6 0.6 0.6 1"/>
+    <material name="long_link_material" rgba="0.156863 0.156863 0.156863 1"/>
+    <material name="short_link_material" rgba="0.156863 0.156863 0.156863 1"/>
+    <material name="dm_4310_cover_material" rgba="0.439216 0.47451 0.501961 1"/>
+    <material name="dm_4310_adapter_material" rgba="0.439216 0.47451 0.501961 1"/>
+    <material name="dm_4310_motor_material" rgba="0.262745 0.282353 0.301961 1"/>
+    <material name="link_cylinder_material" rgba="0.917647 0.917647 0.917647 1"/>
+    <material name="link_cylinder__2_material" rgba="0.917647 0.917647 0.917647 1"/>
+  </asset>
+  <actuator>
+    <position class="pydmL" name="base" joint="base" inheritrange="1"/>
+    <position class="pydmL" name="shoulder" joint="shoulder" inheritrange="1"/>
+    <position class="pydmL" name="elbow" joint="elbow" inheritrange="1"/>
+    <position class="pydmL" name="wrist_1" joint="wrist_1" inheritrange="1"/>
+    <position class="pydmL" name="wrist_2" joint="wrist_2" inheritrange="1"/>
+    <position class="pydmL" name="wrist_3" joint="wrist_3" inheritrange="1"/>
+  </actuator>
+  <equality/>
+</mujoco>

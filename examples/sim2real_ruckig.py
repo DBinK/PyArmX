@@ -34,7 +34,8 @@ manager.set_mode(ControlMode.POS_VEL)
 
 
 # 初始化仿真与控制
-MODEL_PATH = "xml/L20/scene.xml"
+# MODEL_PATH = "xml/L20/scene.xml"
+MODEL_PATH = "xml/L801/scene.xml"
 ARM_DOF = 6
 
 sim = ArmSimulator(MODEL_PATH, arm_dof=ARM_DOF)

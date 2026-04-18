@@ -27,7 +27,8 @@ manager.set_teach_mode()
 
 
 # --- 仿真机械臂 --- #
-MODEL_PATH = "xml/L20/scene.xml"
+# MODEL_PATH = "xml/L20/scene.xml"
+MODEL_PATH = "xml/L801/scene.xml"
 
 sim = ArmSimulator(MODEL_PATH)
 sim.start()

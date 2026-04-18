@@ -10,7 +10,8 @@ from pyarmx.input import PoseInput
 from pyarmx.utils.log import fmt_arr
 from pyarmx.utils.loops import Rate, Timer
 
-MODEL_PATH = "xml/L20/scene.xml"
+# MODEL_PATH = "xml/L20/scene.xml"
+MODEL_PATH = "xml/L801/scene.xml"
 ARM_DOF = 6
 
 # 初始化仿真与控制
