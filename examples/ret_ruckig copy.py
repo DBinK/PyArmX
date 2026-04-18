@@ -68,13 +68,13 @@ sim.viewer = sim.launch()
 
 
 # 矩形参数
-dx = 0.1
-dy = 0.08
+z = 0.0463
 ret_pos = np.array([
     [0.008, 0.072, 0.086],
-    [0.008 + dx, 0.072, 0.086],
-    [0.008 + dx, 0.072 + dy, 0.086],
-    [0.008, 0.072 + dy, 0.086],
+    [0.102, 0.120, z],
+    [0.102, 0.120, z],
+    [0.102, 0.120, z],
+    [0.102, 0.120, z],
 ])
 pos_i = 0  # 矩形位置索引
 
@@ -106,8 +106,8 @@ while sim.viewer.is_running() and loop.sleep():
         switch_timer.reset()
     # if pause := playback.is_switch(): 
         pos_i += 1
-        new_target_pos = ret_pos[pos_i % 4]
-        print(f"切换到 {pos_i % 4} 号点")
+        new_target_pos = ret_pos[pos_i % len(ret_pos)]
+        print(f"切换到 {pos_i % len(ret_pos)} 号点")
     
     pos_diff = np.linalg.norm(new_target_pos - final_target_pos)
     quat_diff = 1.0 - np.abs(np.dot(new_target_quat, final_target_quat))

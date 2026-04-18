@@ -110,21 +110,32 @@ class RuckigPosePlanner:
             self.target_quat = q
 
             # 获取轨迹时间
-            self.ruckig.update(self.input_param, self.output_param)
+            try:
+                res = self.ruckig.update(self.input_param, self.output_param)
+                if res != ruckig.Result.Working and res != ruckig.Result.Finished:
+                    print(f"[Warn] _set_target 规划失败 (Result: {res})，保持上一目标")
+                    # 恢复 target_position 为上一次成功的状态，或者保持当前 input_param 不变
+                    # 这里选择简单处理：不更新 slerp，保持原有运动趋势
+                    return
 
-            duration = self.output_param.trajectory.duration
-            if duration <= 0:
-                duration = self.dt
+                duration = self.output_param.trajectory.duration
+                if duration <= 0:
+                    duration = self.dt
 
-            self.slerp_duration = duration
+                self.slerp_duration = duration
 
-            key_times = [0.0, duration]
-            rots = R.from_quat(np.vstack([self.current_quat, self.target_quat]))
+                key_times = [0.0, duration]
+                rots = R.from_quat(np.vstack([self.current_quat, self.target_quat]))
 
-            self.slerp = Slerp(key_times, rots)
-            # 只在首次初始化或上一段轨迹完成后才重置时间
-            if self.slerp_start_time is None or (time.time() - self.slerp_start_time) >= self.slerp_duration:
-                self.slerp_start_time = time.time()
+                self.slerp = Slerp(key_times, rots)
+                # 只在首次初始化或上一段轨迹完成后才重置时间
+                if self.slerp_start_time is None or (time.time() - self.slerp_start_time) >= self.slerp_duration:
+                    self.slerp_start_time = time.time()
+                    
+            except ruckig.RuckigError as e:
+                print(f"[Error] _set_target 发生异常: {e}，跳过本次目标更新")
+                # 关键：发生异常时不要崩溃，直接返回，保持机器人按原轨迹运动
+                return
 
     # ================= 主循环 =================
     def run_loop(self):
@@ -144,36 +155,60 @@ class RuckigPosePlanner:
                     self._set_target(target)
             except queue.Empty:
                 pass
+            
+            new_pos = self._current_position.copy()
+            new_vel = self._current_velocity.copy()
+            new_acc = self._current_acceleration.copy()
+            success = False
 
             # ===== Ruckig =====
             with self.lock:
-                res = self.ruckig.update(self.input_param, self.output_param)
+                try:
+                    res = self.ruckig.update(self.input_param, self.output_param)
 
-                if res == ruckig.Result.Error:
-                    print("[Error] Ruckig失败")
-                    continue
+                    if res == ruckig.Result.Finished:
+                        # 轨迹完成，保持目标状态作为当前状态
+                        new_pos = np.array(self.input_param.target_position, dtype=np.float64)
+                        new_vel = np.zeros(3, dtype=np.float64)
+                        new_acc = np.zeros(3, dtype=np.float64)
+                        success = True
+                    elif res == ruckig.Result.Working:
+                        new_pos = np.array(self.output_param.new_position, dtype=np.float64)
+                        new_vel = np.array(self.output_param.new_velocity, dtype=np.float64)
+                        new_acc = np.array(self.output_param.new_acceleration, dtype=np.float64)
+                        success = True
+                    else:
+                        # 对应 Result.Error
+                        print(f"[Warn] Ruckig 规划失败 (Result: {res})，跳过本次更新")
+                        
+                except ruckig.RuckigError as e:
+                    # 捕获底层 C++ 抛出的错误
+                    print(f"[Error] Ruckig 发生异常: {e}，跳过本次更新")
 
-                new_pos = np.array(self.output_param.new_position, dtype=np.float64)
-                new_vel = np.array(self.output_param.new_velocity, dtype=np.float64)
-                new_acc = np.array(self.output_param.new_acceleration, dtype=np.float64)
-
-                self._current_position = new_pos
-                self._current_velocity = new_vel
-                self._current_acceleration = new_acc
-                
-                self.input_param.current_position = new_pos.tolist()
-                self.input_param.current_velocity = new_vel.tolist()
-                self.input_param.current_acceleration = new_acc.tolist()
+                if success:
+                    self._current_position = new_pos
+                    self._current_velocity = new_vel
+                    self._current_acceleration = new_acc
+                    
+                    self.input_param.current_position = new_pos.tolist()
+                    self.input_param.current_velocity = new_vel.tolist()
+                    self.input_param.current_acceleration = new_acc.tolist()
+                # else:
+                    # 如果失败，保持 new_pos 等为上一帧的状态（已在循环开头初始化）
 
             # ===== Slerp =====
+            # 只有在规划成功或者轨迹尚未结束时才更新姿态，避免时间溢出导致插值错误
             if self.slerp is not None and self.slerp_start_time is not None:
                 t = time.time() - self.slerp_start_time
+                # 如果规划失败，我们依然让姿态随时间推进，直到达到 duration
+                # 但如果想严格同步，可以在 success 为 False 时暂停时间推进，这里选择继续推进以保持流畅
                 t = np.clip(t, 0.0, self.slerp_duration)
 
                 rot = self.slerp([t])[0]
                 self.current_quat = rot.as_quat()
 
             # ===== 输出（防堆积）=====
+            # new_pos 已经在循环开头初始化为当前状态，如果规划成功则已更新
             full_pose = np.concatenate([new_pos, self.current_quat])
 
             if self.output_queue.full():
