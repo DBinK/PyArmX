@@ -173,7 +173,7 @@ while sim.viewer.is_running() and loop.sleep():
     #     break
     # else:
     #     elbow = manager.get_joint_by_id(JointID.elbow)
-    #     pos, vel, torque = elbow.motor.get_state()
+        # pos, vel, torque = elbow.motor.get_state()
 
     #     rec_data.append([pos, vel, torque])
         
