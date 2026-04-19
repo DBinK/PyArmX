@@ -1,6 +1,7 @@
 # Project-specific files
 tmp/
 stubs/
+img/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

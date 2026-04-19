@@ -40,7 +40,7 @@ timer = Timer(duration=0.5)
 i = 0.01
 
 # while sim.viewer.is_running() and loop.sleep():
-while loop.sleep():
+while loop.sleep() :
 
     manager.set_mit_zero() 
     q_real = manager.get_joints_pos_list()

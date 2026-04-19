@@ -118,8 +118,8 @@ while sim.viewer.is_running() and loop.sleep():
         
         target_7d = np.concatenate([final_target_pos, final_target_quat])
         planner.set_target(target_7d)
-        
-    sim.update_target_dot(new_target_pos)
+
+    sim.update_target_dot(final_target_pos)
 
     # 获取平滑轨迹点
     smooth_pose = planner.get_pose(block=False, timeout=0)
@@ -146,6 +146,17 @@ while sim.viewer.is_running() and loop.sleep():
     # 更新当前状态, 此处直接用 q_command , 真机可以考虑用真实的 q_current
     q_current = sim.get_q_current() 
 
+    # 实机误差
+    q_real = np.asanyarray(manager.get_joints_pos_list())
+    pos_real = sim.get_fk_quat(q_real)[0]
+    pos_real_diff = np.linalg.norm(new_target_pos - pos_real)
+
+    if pos_real_diff < 0.001:
+        # rec_data.append(np.concatenate([pos, new_target_pos, [dpos]]))
+        print(f"real: {pos_real}, target: {new_target_pos}, pos_diff: {pos_real_diff:.18f}")
+
+        rec_data.append(np.concatenate([pos_real, new_target_pos, [pos_real_diff]]))
+
     # # 监控日志
     # if timer.done:
     #     current_actual_pos, current_actual_quat = sim.get_fk_quat(q_current)
@@ -164,16 +175,16 @@ while sim.viewer.is_running() and loop.sleep():
 
     
     # 记录电机状态变化
-    # if rec_timer.done:
-    #     import csv 
-    #     with open("tmp/torque_ig.csv", "w", newline="") as f:
-    #         writer = csv.writer(f)
-    #         for motor_state in rec_data:
-    #             writer.writerow(motor_state)
-    #     break
+    if rec_timer.done:
+        import csv 
+        with open("tmp/pos_diff.csv", "w", newline="") as f:
+            writer = csv.writer(f)
+            for motor_state in rec_data:
+                writer.writerow(motor_state)
+        print(f"记录完成, 共 {len(rec_data)} 条数据")
+        break
     # else:
-    #     elbow = manager.get_joint_by_id(JointID.elbow)
-        # pos, vel, torque = elbow.motor.get_state()
-
-    #     rec_data.append([pos, vel, torque])
-        
+    #     q = sim.get_q_current()
+    #     pos = sim.get_fk_quat(q)[:3]
+    #     rec_data.append(np.concatenate([pos, new_target_pos, [pos_diff]]))
+    #     print(f"pos : {pos}, target: {new_target_pos}, diff: {pos_diff:.4f}")

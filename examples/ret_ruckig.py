@@ -163,17 +163,17 @@ while sim.viewer.is_running() and loop.sleep():
     #     timer.reset()
 
     
-    # 记录电机状态变化
-    if rec_timer.done:
-        import csv 
-        with open("tmp/torque_ig.csv", "w", newline="") as f:
-            writer = csv.writer(f)
-            for motor_state in rec_data:
-                writer.writerow(motor_state)
-        break
-    else:
-        elbow = manager.get_joint_by_id(JointID.elbow)
-        pos, vel, torque = elbow.motor.get_state()
+    # # 记录电机状态变化
+    # if rec_timer.done:
+    #     import csv 
+    #     with open("tmp/torque_ig.csv", "w", newline="") as f:
+    #         writer = csv.writer(f)
+    #         for motor_state in rec_data:
+    #             writer.writerow(motor_state)
+    #     break
+    # else:
+    #     elbow = manager.get_joint_by_id(JointID.elbow)
+    #     pos, vel, torque = elbow.motor.get_state()
 
-        rec_data.append([pos, vel, torque])
+    #     rec_data.append([pos, vel, torque])
         
