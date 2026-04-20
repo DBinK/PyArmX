@@ -55,6 +55,8 @@ class TagLocator:
         self.tx = 0.0
         self.ty = 140  # 把桌面坐标原点向 Y 轴移动 140 mm
 
+        self.H_desk2pix: np.ndarray | None = None
+        self.H_pix2desk: np.ndarray | None = None
 
     def locate_target(self, img: np.ndarray, target_id: int) -> tuple[np.ndarray | None, np.ndarray | None, list[Detection]]:
         """
@@ -71,17 +73,31 @@ class TagLocator:
             H_raw = self.hmf.update(target)
             
             # 内部调用齐次矩阵运算进行缩放和平移 (40mm -> 1mm)
-            H_desk2pix = self._scale_homo(H_raw, self.scale_factor)
-            H_desk2pix = self._translate_homo(H_desk2pix, self.tx, self.ty)
+            self.H_desk2pix = self._scale_homo(H_raw, self.scale_factor)
+            self.H_desk2pix = self._translate_homo(self.H_desk2pix, self.tx, self.ty)
             
             try:
-                H_pix2desk = np.linalg.inv(H_desk2pix)
+                self.H_pix2desk = np.linalg.inv(self.H_desk2pix)
             except np.linalg.LinAlgError:
-                return H_desk2pix, None, valid_detections
+                self.H_pix2desk = None
+                return self.H_desk2pix, None, valid_detections
                 
-            return H_desk2pix, H_pix2desk, valid_detections
+            return self.H_desk2pix, self.H_pix2desk, valid_detections
             
-        return None, None, valid_detections
+        return self.H_desk2pix, self.H_pix2desk, valid_detections
+    
+    
+    def desk_to_pixel(self, point: tuple[float, float]) -> tuple[int, int] | None:
+        """将桌面坐标转换为像素坐标(int)"""
+        if self.H_desk2pix is not None:
+            px, py = self.apply_transform(point, self.H_desk2pix)
+            return int(px), int(py)
+        
+    def pixel_to_desk(self, point: tuple[float, float]) -> tuple[float, float] | None:
+        """将像素坐标转换为桌面坐标(float)"""
+        if self.H_pix2desk is not None:
+            return self.apply_transform(point, self.H_pix2desk)
+    
 
     @staticmethod
     def apply_transform(point: tuple[float, float], H: np.ndarray) -> tuple[float, float]:
@@ -91,6 +107,7 @@ class TagLocator:
         if p_trans[2] != 0:
             p_trans /= p_trans[2]
         return float(p_trans[0]), float(p_trans[1])
+
 
     @staticmethod
     def _pre_process(img: np.ndarray) -> np.ndarray:
@@ -129,6 +146,14 @@ class TagLocator:
 
 class TagVisualizer:
     """封装所有可视化与调试绘图功能"""
+    @staticmethod
+    def draw_point(img: np.ndarray, point: tuple[int, int], color: list=[0, 0, 255], text: str = ""):
+        """在指定位置绘制点与文字"""
+        img_draw = img.copy()
+        cv2.circle(img_draw, point, 3, color, -1)
+        cv2.putText(img_draw, text, (point[0] + 5, point[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        return img_draw
+
     @staticmethod
     def draw_tags(img: np.ndarray, detections: list[Detection]) -> np.ndarray:
         """绘制所有 AprilTag"""

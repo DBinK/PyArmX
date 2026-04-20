@@ -105,6 +105,10 @@ if __name__ == "__main__":
             else:
                 frame_rets = frame
 
+            pix = locator.desk_to_pixel((300, -50))
+            frame_rets = vis.draw_point(frame_rets, pix, text="nailong")
+
+            cv2.namedWindow("frame_rets", cv2.WINDOW_NORMAL)
             cv2.imshow("frame_rets", frame_rets)
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
