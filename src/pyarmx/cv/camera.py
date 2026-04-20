@@ -1,9 +1,9 @@
+# camera.py
+
 import time
 
 import cv2
 import numpy as np
-
-from pyarmx.cv.tags import draw_tags, scale_homo
 
 # 摄像头参数
 camera_params = {
@@ -79,17 +79,12 @@ class USBCamera:
 
 if __name__ == "__main__":
     from pyarmx.cv.tags import (
-        HomographyFilter,
-        draw_grid,
-        filter_by_size,
-        pre_process,
-        tag_detector,
-        translate_homo,
+        TagLocator,
+        TagVisualizer,
     )
-    from pyarmx.utils.lowpass import LowPassFilter
-
-    # lpf = LowPassFilter(alpha=0.03)
-    hmf = HomographyFilter(0.1)
+    
+    locator = TagLocator()
+    vis = TagVisualizer()
 
     cam = USBCamera(camera_params)
     # cap = cv2.VideoCapture(1,  cv2.CAP_DSHOW)
@@ -100,24 +95,13 @@ if __name__ == "__main__":
 
         # ret, frame = cam.cap.read()
         # ret, frame = cap.read()
+
         if ret and frame is not None:
-            frame_pre = pre_process(frame)
-            rets = tag_detector.detect(frame_pre)  # type: ignore
+            H_desk2pix, H_pix2desk, detections = locator.locate_target(frame, 14)
 
-            rets = filter_by_size(rets)
-
-            if len(rets) > 0:
-                # H_desk2pix = rets[0].homography
-                H_desk2pix = hmf.update(rets[0])
-
-                # 将坐标系从 40mm/格 转换为 1mm/格
-                H_desk2pix = scale_homo(H_desk2pix,1 / 40)
-                H_desk2pix = translate_homo(H_desk2pix, ty=140)
-                # print(homography)
-
-                # frame_rets = draw_integer_grid(frame, rets[0], homography_filter=hmf)
-                frame_rets = draw_tags(frame, rets)
-                frame_rets = draw_grid(frame_rets, H_desk2pix, 20)
+            if H_desk2pix is not None:
+                frame_rets = vis.draw_tags(frame, detections)
+                frame_rets = vis.draw_grid(frame_rets, H_desk2pix, 20)
             else:
                 frame_rets = frame
 

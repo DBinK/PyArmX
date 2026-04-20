@@ -1,221 +1,27 @@
-from typing import TypeAlias
-
 import cv2
 import numpy as np
-from pupil_apriltags import Detector
-from pupil_apriltags.bindings import Detection
-
-MatLike: TypeAlias = cv2.typing.MatLike
-
-# 初始化一个Detector实例，用于检测和解码Apriltag标记
-tag_detector = Detector(
-    families="tag16h5",      # 指定使用的Apriltag家族，这里选择的是'tag16h5'
-    nthreads=4,              # 设置用于加速计算的线程数，此处设置为1
-    quad_decimate=1.0,       # 设置图像简化比例，用于加快处理速度，1.0表示不简化
-    quad_sigma=0.0,          # 指定在检测标记前对图像进行高斯模糊的程度，0.0表示不进行模糊处理
-    refine_edges=1,          # 设置是否对检测到的标记边缘进行精细化处理，以提高定位精度
-    decode_sharpening=0.25,  # 设置解码过程中的图像锐化程度，以提高解码成功率
-    debug=0,                 # 设置调试模式级别，0表示不启用调试模式
-)
-
-def pre_process(img: MatLike):
-    # 预处理
-    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # 将图像转换为灰度图像
-    img_blur = cv2.GaussianBlur(img_gray, (3, 3), 0)  # 应用高斯滤波以平滑图像
-    _, img_bin = cv2.threshold(img_blur, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)  # 二值化
-
-    return img_bin
-
-# 鼠标回调函数
-def click_event(event, x, y, flags, param):
-    if event == cv2.EVENT_LBUTTONDOWN:  # 检测左键点击事件
-        
-        #p_raw = [x, y]
-        #p_obj = transform_image_to_object(p_raw, H_matrix)
-        #p_obj_fix = [(p_obj[0]/10)-20, (p_obj[1]/10)-20]
-
-        print(f'点击坐标: ({x}, {y})')  # 打印点击的坐标
-        # print(f'转换坐标: ({p_obj[0]}, {p_obj[1]})')
-        # print(f'转换坐标fix: ({p_obj_fix[0]}, {p_obj_fix[1]})')
-
-        # cv2.putText(img_trans, f"{int(p_obj_fix[0])},{int(p_obj_fix[1])}", (int(p_obj[0]+100), int(p_obj[1])), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 5)
-        # cv2.circle(img_trans, (int(p_obj[0]), int(p_obj[1])), 50, (0, 0, 255), -1)
-        # cv2.imshow('Warped Image', img_raw)  # 重新显示图像
-
-def get_tag_size(corners):
-    # 获取角点坐标的 NumPy 数组
-    x_coords = corners[:, 0]
-    y_coords = corners[:, 1]
-    
-    # 计算宽度和高度
-    width = np.max(x_coords) - np.min(x_coords)
-    height = np.max(y_coords) - np.min(y_coords)
-
-    # print(f"Tag size: width={width}, height={height}.")
-
-    return width, height
-
-
-def filter_by_size(detections: list[Detection], min_size=(100, 100), max_size=(2000, 2000)) -> list[Detection]:
-    valid_tags = []
-    for detection in detections:
-        corners = detection.corners  
-        # tag_id = detection.tag_id  
-        # x, y = detection.center.tolist()
-
-        # 计算标签大小
-        width, height = get_tag_size(corners)
-
-        # 根据大小过滤标签
-        if (min_size[0] <= width <= max_size[0]) and (min_size[1] <= height <= max_size[1]):
-            # print(f"Tag {tag_id} , center={(x, y)}")
-            valid_tags.append(detection)
-        else:
-            # print(f"Tag {tag_id} is filtered out due to size: width={width}, height={height}.")
-            continue
-    
-    return valid_tags
-
-def scale_homo(H_desk2pix: np.ndarray , scale_factor: float = 1 / 40) -> np.ndarray:
-    """缩放矩阵
-    Args:
-        H_desk2pix (np.ndarray): 4x4相机画面到桌面的转换矩阵
-        scale_factor (float, optional): 缩放因子。默认为1mm/40mm。
-    """
-    scale_matrix = np.array([[scale_factor, 0, 0],
-                                [0, scale_factor, 0],
-                                [0, 0, 1]], dtype=np.float64)
-    H_desk2pix_scaled  = H_desk2pix  @ scale_matrix
-    return H_desk2pix_scaled 
-
-def translate_homo(H_desk2pix: np.ndarray, tx: float = 0.0, ty: float = 0.0) -> np.ndarray:
-    """平移矩阵
-    Args:
-        H_desk2pix (np.ndarray): 4x4相机画面到桌面的转换矩阵
-        tx (float, optional): x方向的平移量。默认为0。
-        ty (float, optional): y方向的平移量。默认为0。
-    """
-    translate_matrix = np.array([[1, 0, tx],
-                                  [0, 1, ty],
-                                  [0, 0, 1]], dtype=np.float64)
-    H_desk2pix_translated = H_desk2pix @ translate_matrix
-    return H_desk2pix_translated
-
-def draw_tags(img: MatLike, detections: list[Detection]):
-
-    img_draw = img.copy()
-
-    # 绘制检测结果
-    for detection in detections:
-
-        corners = detection.corners
-        center = detection.center
-
-        if corners is None or center is None:
-            continue
-
-        # 绘制边界框
-        for i in range(4):
-            cv2.line(
-                img_draw,
-                tuple(corners[i].astype(int)),
-                tuple(corners[(i + 1) % 4].astype(int)),
-                (0, 255, 0),
-                3,
-            )  # 绿色线条
-
-        # 在中心绘制标签 ID
-        center = int(center[0]-15), int(center[1]+12)
-        cv2.putText(
-            img_draw,
-            f"{detection.tag_id}",
-            center,
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.8,
-            (0, 0, 222),
-            2,
-        )  # 红色文本
-
-    return img_draw
-
-
-def draw_grid(img, homography, step=1, range_limit=500):
-    """
-    在图像上绘制 tag 平面整数坐标点
-    :param homography_filter: 可选的单应性矩阵滤波器
-    """
-    img_draw = img.copy()
-    
-    H = homography
-
-    h, w = img.shape[:2]
-
-    for x in range(-range_limit, range_limit + 1, step):
-        for y in range(-range_limit, range_limit + 1, step):
-
-            p_tag = np.array([x, y, 1.0], dtype=np.float32)
-            p_img = H @ p_tag
-
-            # 齐次归一化
-            if p_img[2] == 0:
-                continue
-            p_img = p_img / p_img[2]
-
-            px, py = int(p_img[0]), int(p_img[1])
-
-            # 只画在图像内的点
-            if 0 <= px < w and 0 <= py < h:
-
-                # 点
-                cv2.circle(img_draw, (px, py), 2, (0, 255, 255), -1)
-
-                # 可选：标坐标（太密会很乱）
-                if x % 100 == 0 and y % 100 == 0:
-                    cv2.putText(
-                        img_draw,
-                        f"{x},{y}",
-                        (px + 3, py - 3),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        0.3,
-                        (0, 200, 255),
-                        1
-                    )
-
-    return img_draw
+from pupil_apriltags import Detection, Detector
 
 
 class HomographyFilter:
-    """单应性矩阵滤波器 - 通过对角点滤波实现"""
-    
+    """单应性矩阵滤波器：通过对角点指数移动平均滤波实现平滑"""
     def __init__(self, alpha=0.7):
-        """
-        初始化滤波器
-        :param alpha: 滤波系数，越大响应越快但噪声越多，越小越平滑但延迟越高
-        """
         self.alpha = alpha
         self.previous_corners = None
     
     def update(self, detection: Detection) -> np.ndarray:
-        """
-        更新并返回滤波后的单应性矩阵
-        :param detection: AprilTag检测结果
-        :return: 滤波后的3x3单应性矩阵
-        """
         corners = detection.corners
-        
         if corners is None:
-            return detection.homography
+            return detection.homography  # type: ignore
         
         if self.previous_corners is None:
             self.previous_corners = corners.copy()
-            return detection.homography
+            return detection.homography  # type: ignore
         
-        # 对角点进行指数移动平均滤波
         filtered_corners = self.alpha * corners + (1 - self.alpha) * self.previous_corners
         self.previous_corners = filtered_corners
         
-        # 使用滤波后的角点重新计算单应性矩阵
-        tag_size = 2.0  # tag的标准尺寸（可根据实际情况调整）
+        tag_size = 2.0
         object_points = np.array([
             [-tag_size/2, -tag_size/2, 0],
             [tag_size/2, -tag_size/2, 0],
@@ -224,44 +30,144 @@ class HomographyFilter:
         ], dtype=np.float32)
         
         image_points = filtered_corners.astype(np.float32)
-        
-        # 计算新的单应性矩阵
         H, _ = cv2.findHomography(object_points[:, :2], image_points)
-        
         return H
     
     def reset(self):
-        """重置滤波器状态"""
         self.previous_corners = None
 
 
+class TagLocator:
+    """封装 AprilTag 检测、过滤与物理坐标系转换的完整逻辑"""
+    def __init__(self, filter_alpha: float = 0.1):
+        self.detector = Detector(
+            families="tag16h5",
+            nthreads=4,
+            quad_decimate=1.0,
+            quad_sigma=0.0,
+            refine_edges=1,
+            decode_sharpening=0.25,
+            debug=0,
+        )
+        self.hmf = HomographyFilter(alpha=filter_alpha)
 
-if __name__ == "__main__":
+        self.scale_factor = 1/40  # 意为将40mm一格转为1mm一格
+        self.tx = 0.0
+        self.ty = 140  # 把桌面坐标原点向 Y 轴移动 140 mm
 
-    from rich import print as rprint
 
-    # 读取图像
-    img_path = r"img\transport_nl\WIN_20260419_22_28_59_Pro.jpg"
-    # img_path = "img/tags.jpg"
-    img = cv2.imread(img_path)
+    def locate_target(self, img: np.ndarray, target_id: int) -> tuple[np.ndarray | None, np.ndarray | None, list[Detection]]:
+        """
+        输入原始图像，寻找指定 ID 并计算双向转换矩阵
+        返回: (H_desk2pix, H_pix2desk, 过滤后的所有 tags)
+        """
+        img_pre = self._pre_process(img)
+        detections = self.detector.detect(img_pre)
+        valid_detections = self._filter_by_size(detections)
+        
+        target = next((d for d in valid_detections if d.tag_id == target_id), None)
+        
+        if target:
+            H_raw = self.hmf.update(target)
+            
+            # 内部调用齐次矩阵运算进行缩放和平移 (40mm -> 1mm)
+            H_desk2pix = self._scale_homo(H_raw, self.scale_factor)
+            H_desk2pix = self._translate_homo(H_desk2pix, self.tx, self.ty)
+            
+            try:
+                H_pix2desk = np.linalg.inv(H_desk2pix)
+            except np.linalg.LinAlgError:
+                return H_desk2pix, None, valid_detections
+                
+            return H_desk2pix, H_pix2desk, valid_detections
+            
+        return None, None, valid_detections
 
-    # 预处理
-    if img is None:
-        print("Error: Could not read image.")
-        exit()
+    @staticmethod
+    def apply_transform(point: tuple[float, float], H: np.ndarray) -> tuple[float, float]:
+        """执行齐次坐标系转换 (像素与物理坐标互转)"""
+        p = np.array([point[0], point[1], 1.0], dtype=np.float32)
+        p_trans = H @ p
+        if p_trans[2] != 0:
+            p_trans /= p_trans[2]
+        return float(p_trans[0]), float(p_trans[1])
 
-    img_pre = pre_process(img)
+    @staticmethod
+    def _pre_process(img: np.ndarray) -> np.ndarray:
+        """内部图像预处理"""
+        img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        img_blur = cv2.GaussianBlur(img_gray, (3, 3), 0)
+        _, img_bin = cv2.threshold(img_blur, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+        return img_bin
 
-    # 检测标记
-    detections: list[Detection] = tag_detector.detect(img_pre)  # type: ignore # 注: 这个返回的类型是列表, 库里面的注解是错的
+    @staticmethod
+    def _filter_by_size(detections: list[Detection], min_size=(100, 100), max_size=(2000, 2000)) -> list[Detection]:
+        """内部大小过滤"""
+        valid_tags = []
+        for detection in detections:
+            x_coords = detection.corners[:, 0]  # type: ignore
+            y_coords = detection.corners[:, 1]  # type: ignore
+            width = np.max(x_coords) - np.min(x_coords)
+            height = np.max(y_coords) - np.min(y_coords)
+            
+            if (min_size[0] <= width <= max_size[0]) and (min_size[1] <= height <= max_size[1]):
+                valid_tags.append(detection)
+        return valid_tags
 
-    rprint(detections)
+    @staticmethod
+    def _scale_homo(H: np.ndarray, scale_factor: float) -> np.ndarray:
+        """内部矩阵缩放"""
+        scale_matrix = np.array([[scale_factor, 0, 0], [0, scale_factor, 0], [0, 0, 1]], dtype=np.float64)
+        return H @ scale_matrix
 
-    img_draw = draw_grid(img, detections[0])
-    cv2.imshow("Warped Image", img_draw)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    @staticmethod
+    def _translate_homo(H: np.ndarray, tx: float = 0.0, ty: float = 0.0) -> np.ndarray:
+        """内部矩阵平移"""
+        translate_matrix = np.array([[1, 0, tx], [0, 1, ty], [0, 0, 1]], dtype=np.float64)
+        return H @ translate_matrix
 
-    print(detections[0].homography)
-    print(detections[0].tag_id)
 
+class TagVisualizer:
+    """封装所有可视化与调试绘图功能"""
+    @staticmethod
+    def draw_tags(img: np.ndarray, detections: list[Detection]) -> np.ndarray:
+        """绘制所有 AprilTag"""
+        img_draw = img.copy()
+        for detection in detections:
+            corners = detection.corners
+            center = detection.center
+            if corners is None or center is None:
+                continue
+                
+            for i in range(4):
+                cv2.line(img_draw, tuple(corners[i].astype(int)), tuple(corners[(i + 1) % 4].astype(int)), (0, 255, 0), 3)
+                         
+            center_text = int(center[0] - 15), int(center[1] + 12)
+            cv2.putText(img_draw, f"{detection.tag_id}", center_text, cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 222), 2)
+        return img_draw
+
+    @staticmethod
+    def draw_grid(img: np.ndarray, homography: np.ndarray, step: int = 1, range_limit: int = 500) -> np.ndarray:
+        """绘制网格
+        Args:
+            img (np.ndarray): 输入图像
+            homography (np.ndarray): 投影矩阵
+            step (int, optional): 网格步长. Defaults to 1.
+            range_limit (int, optional): 网格范围. Defaults to 500.
+        """
+        img_draw = img.copy()
+        h, w = img.shape[:2]
+        for x in range(-range_limit, range_limit + 1, step):
+            for y in range(-range_limit, range_limit + 1, step):
+                p_tag = np.array([x, y, 1.0], dtype=np.float32)
+                p_img = homography @ p_tag
+                if p_img[2] == 0:
+                    continue
+                p_img = p_img / p_img[2]
+                px, py = int(p_img[0]), int(p_img[1])
+
+                if 0 <= px < w and 0 <= py < h:
+                    cv2.circle(img_draw, (px, py), 2, (0, 255, 255), -1)
+                    if x % 100 == 0 and y % 100 == 0:
+                        cv2.putText(img_draw, f"{x},{y}", (px + 3, py - 3), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (0, 200, 255), 1)
+        return img_draw
