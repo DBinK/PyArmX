@@ -14,6 +14,7 @@ dependencies = [
     "looptick>=0.1.4",
     "mujoco>=3.6.0",
     "openai>=2.32.0",
+    "pillow>=12.2.0",
     "pupil-apriltags>=1.0.4.post11",
     "pydamiao",
     "pygame>=2.6.1",

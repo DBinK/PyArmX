@@ -152,8 +152,8 @@ availableActions = ["move_to", "grip", "release"]
 响应 JSON :  
 
 {
-  "say": "[无法完成该任务]，该指令不属于任务",
-  "task": "我是大喵，有什么可以为您帮忙的吗？"
+  "task": "无法完成该任务，该指令不属于任务",
+  "say": "我是大喵，有什么可以为您帮忙的吗？"
 }
 
 
@@ -168,3 +168,8 @@ availableActions = ["move_to", "grip", "release"]
 你返回的指令需要包含每一个字段， box 的格式是 (x_min, y_min, x_max, y_max)
 
 '''
+
+# def build_dm_prompt():
+    
+if __name__ == "__main__":
+    print(DM_PROMPT)
