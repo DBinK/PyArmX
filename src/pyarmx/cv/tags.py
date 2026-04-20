@@ -8,14 +8,14 @@ from pupil_apriltags.bindings import Detection
 MatLike: TypeAlias = cv2.typing.MatLike
 
 # 初始化一个Detector实例，用于检测和解码Apriltag标记
-at_detector = Detector(
-    families="tag16h5",  # 指定使用的Apriltag家族，这里选择的是'tag16h5'
-    nthreads=4,  # 设置用于加速计算的线程数，此处设置为1
-    quad_decimate=1.0,  # 设置图像简化比例，用于加快处理速度，1.0表示不简化
-    quad_sigma=0.0,  # 指定在检测标记前对图像进行高斯模糊的程度，0.0表示不进行模糊处理
-    refine_edges=1,  # 设置是否对检测到的标记边缘进行精细化处理，以提高定位精度
+tag_detector = Detector(
+    families="tag16h5",      # 指定使用的Apriltag家族，这里选择的是'tag16h5'
+    nthreads=4,              # 设置用于加速计算的线程数，此处设置为1
+    quad_decimate=1.0,       # 设置图像简化比例，用于加快处理速度，1.0表示不简化
+    quad_sigma=0.0,          # 指定在检测标记前对图像进行高斯模糊的程度，0.0表示不进行模糊处理
+    refine_edges=1,          # 设置是否对检测到的标记边缘进行精细化处理，以提高定位精度
     decode_sharpening=0.25,  # 设置解码过程中的图像锐化程度，以提高解码成功率
-    debug=0,  # 设置调试模式级别，0表示不启用调试模式
+    debug=0,                 # 设置调试模式级别，0表示不启用调试模式
 )
 
 def pre_process(img: MatLike):
@@ -56,30 +56,6 @@ def get_tag_size(corners):
     return width, height
 
 
-def homo_trans(corners: list[float], width=int(1), height=int(1)):
-
-    """ 计算 将图像中的特定四边形区域 变换为目标长方形区域 所需的矩阵 H """
-
-    # 定义图像中的长方形四个顶点（根据你实际值设定）
-    image_points = np.array(corners, dtype='float32')
-
-    # 定义目标长方形的四个顶点
-    object_points = np.array([[0, 0], [width, 0], [width, height], [0, height]], dtype='float32')
-
-    # 计算同伦变换矩阵
-    H_matrix , _ = cv2.findHomography(image_points, object_points)
-    
-    if H_matrix is None:
-        raise ValueError("无法计算单应性矩阵")
-    
-    H_matrix = np.asarray(H_matrix, dtype=np.float64)
-
-    # 计算反向变换矩阵
-    H_inv = np.linalg.inv(H_matrix)
-
-    return H_matrix, H_inv
-
-
 def filter_by_size(detections: list[Detection], min_size=(100, 100), max_size=(2000, 2000)) -> list[Detection]:
     valid_tags = []
     for detection in detections:
@@ -100,6 +76,30 @@ def filter_by_size(detections: list[Detection], min_size=(100, 100), max_size=(2
     
     return valid_tags
 
+def scale_homo(H_desk2pix: np.ndarray , scale_factor: float = 1 / 40) -> np.ndarray:
+    """缩放矩阵
+    Args:
+        H_desk2pix (np.ndarray): 4x4相机画面到桌面的转换矩阵
+        scale_factor (float, optional): 缩放因子。默认为1mm/40mm。
+    """
+    scale_matrix = np.array([[scale_factor, 0, 0],
+                                [0, scale_factor, 0],
+                                [0, 0, 1]], dtype=np.float64)
+    H_desk2pix_scaled  = H_desk2pix  @ scale_matrix
+    return H_desk2pix_scaled 
+
+def translate_homo(H_desk2pix: np.ndarray, tx: float = 0.0, ty: float = 0.0) -> np.ndarray:
+    """平移矩阵
+    Args:
+        H_desk2pix (np.ndarray): 4x4相机画面到桌面的转换矩阵
+        tx (float, optional): x方向的平移量。默认为0。
+        ty (float, optional): y方向的平移量。默认为0。
+    """
+    translate_matrix = np.array([[1, 0, tx],
+                                  [0, 1, ty],
+                                  [0, 0, 1]], dtype=np.float64)
+    H_desk2pix_translated = H_desk2pix @ translate_matrix
+    return H_desk2pix_translated
 
 def draw_tags(img: MatLike, detections: list[Detection]):
 
@@ -139,7 +139,7 @@ def draw_tags(img: MatLike, detections: list[Detection]):
     return img_draw
 
 
-def draw_integer_grid(img, homography, step=1, range_limit=100):
+def draw_grid(img, homography, step=1, range_limit=500):
     """
     在图像上绘制 tag 平面整数坐标点
     :param homography_filter: 可选的单应性矩阵滤波器
@@ -170,7 +170,7 @@ def draw_integer_grid(img, homography, step=1, range_limit=100):
                 cv2.circle(img_draw, (px, py), 2, (0, 255, 255), -1)
 
                 # 可选：标坐标（太密会很乱）
-                if x % 10 == 0 and y % 10 == 0:
+                if x % 100 == 0 and y % 100 == 0:
                     cv2.putText(
                         img_draw,
                         f"{x},{y}",
@@ -253,11 +253,11 @@ if __name__ == "__main__":
     img_pre = pre_process(img)
 
     # 检测标记
-    detections: list[Detection] = at_detector.detect(img_pre)  # type: ignore # 注: 这个返回的类型是列表, 库里面的注解是错的
+    detections: list[Detection] = tag_detector.detect(img_pre)  # type: ignore # 注: 这个返回的类型是列表, 库里面的注解是错的
 
     rprint(detections)
 
-    img_draw = draw_integer_grid(img, detections[0])
+    img_draw = draw_grid(img, detections[0])
     cv2.imshow("Warped Image", img_draw)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
