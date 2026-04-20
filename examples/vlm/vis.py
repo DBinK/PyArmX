@@ -14,13 +14,17 @@ bot = ChatBot(config)
 
 # text = bot.chat("你好, 你是谁")
 
+
+img_path = r"img\pick\WIN_20260420_23_49_29_Pro.jpg"   # 
+cmd = "把奶龙捡起来"
+
 # img_path = r"img\transport_nl\WIN_20260419_22_28_59_Pro.jpg"   # 
 # cmd = "把奶龙放到胶带上"
 # cmd = "把方块放到胶带上"
 
-img_path = r"img\transport\WIN_20260419_22_23_32_Pro.jpg"   # 
+# img_path = r"img\transport\WIN_20260419_22_23_32_Pro.jpg"   # 
 # cmd = "把奶龙放到胶带上"
-cmd = "把方块放到胶带上"
+# cmd = "把方块放到胶带上"
 
 # img_path = r"img\classify\WIN_20260419_23_57_58_Pro.jpg"   # 
 # cmd = "把所有方块放到胶带上"

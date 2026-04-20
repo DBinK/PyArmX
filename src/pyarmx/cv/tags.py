@@ -99,7 +99,8 @@ def filter_by_size(detections: list[Detection], min_size=(100, 100), max_size=(2
             continue
     
     return valid_tags
-    
+
+
 def draw_tags(img: MatLike, detections: list[Detection]):
 
     img_draw = img.copy()
@@ -138,7 +139,7 @@ def draw_tags(img: MatLike, detections: list[Detection]):
     return img_draw
 
 
-def draw_integer_grid(img, homography, step=1, range_limit=100, homography_filter=None):
+def draw_integer_grid(img, homography, step=1, range_limit=100):
     """
     在图像上绘制 tag 平面整数坐标点
     :param homography_filter: 可选的单应性矩阵滤波器

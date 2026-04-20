@@ -2,12 +2,16 @@
 import time
 
 import cv2
+import numpy as np
+
+from pyarmx.cv.tags import draw_tags
 
 
 # 摄像头参数
 camera_params = {
     # 'camera_id': "/dev/video-4k",
-    'camera_id': 1,
+    # 'camera_id': 1,
+    'camera_id': r"C:\Pictures\Camera Roll\WIN_20260420_23_46_38_Pro.mp4",
     # 'image_width': 1920,
     # 'image_height': 1080,
     'image_width': 1280,
@@ -38,9 +42,9 @@ class USBCamera:
 
         # 初始化相机
         print(f'开始初始化 {self.camera_id} 号相机相机...')
-        self.cap = cv2.VideoCapture(self.camera_id, cv2.CAP_DSHOW)
+        # self.cap = cv2.VideoCapture(self.camera_id, cv2.CAP_DSHOW)
         # self.cap = cv2.VideoCapture(self.camera_id, cv2.CAP_FFMPEG)
-        # self.cap = cv2.VideoCapture(self.camera_id)
+        self.cap = cv2.VideoCapture(self.camera_id)
         self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # 设置缓冲区大小为 1, 只读取最新一帧
 
         print(f'初始化了 {self.camera_id} 号相机, 开始设置参数...')
@@ -76,7 +80,7 @@ class USBCamera:
 
 if __name__ == '__main__':
 
-    from pyarmx.cv.tags import pre_process, at_detector, draw_integer_grid, HomographyFilter, filter_by_size
+    from pyarmx.cv.tags import pre_process, at_detector, draw_integer_grid, HomographyFilter, filter_by_size, homo_trans
     from pyarmx.utils.lowpass import LowPassFilter
 
     # lpf = LowPassFilter(alpha=0.03)
@@ -85,21 +89,39 @@ if __name__ == '__main__':
     cam = USBCamera(camera_params)
     # cap = cv2.VideoCapture(1,  cv2.CAP_DSHOW)
 
+
     while True:
         
-        ret, frame = cam.cap.read()
+        ret = True 
+        frame = cv2.imread(r"img\pick\WIN_20260420_23_49_29_Pro.jpg")
+        
+        # ret, frame = cam.cap.read()
         # ret, frame = cap.read()
-        if ret:
+        if ret and frame is not None:
             frame_pre = pre_process(frame)
             rets = at_detector.detect(frame_pre) # type: ignore
 
             rets = filter_by_size(rets)
 
             if len(rets) > 0:
+
                 # homography = rets[0].homography
                 homography = hmf.update(rets[0]) 
+                # print(rets[0].corners)
+
+                # homography, _ = homo_trans(rets[0].corners) # type: ignore
+
+                # 将坐标系从 80mm/格 转换为 10mm/格
+                scale_factor = 10 / 80  # 8
+                scale_matrix = np.array([[scale_factor, 0, 0],
+                                         [0, scale_factor, 0],
+                                         [0, 0, 1]], dtype=np.float64)
+                homography = homography @ scale_matrix
+                # print(homography)
+
                 # frame_rets = draw_integer_grid(frame, rets[0], homography_filter=hmf)
-                frame_rets = draw_integer_grid(frame, homography)
+                frame_rets = draw_tags(frame, rets)
+                frame_rets = draw_integer_grid(frame_rets, homography, 2)
             else:
                 frame_rets = frame
 
