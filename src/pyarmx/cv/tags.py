@@ -160,7 +160,29 @@ class TagVisualizer:
         """在指定位置绘制点与文字"""
         img_draw = img.copy()
         cv2.circle(img_draw, (int(point.x), int(point.y)), 3, color, -1)
-        cv2.putText(img_draw, text, (int(point.x) + 5, int(point.y) - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        
+        if text:
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            font_scale = 0.5
+            thickness = 2
+            
+            # 获取文本大小以绘制背景
+            (text_width, text_height), baseline = cv2.getTextSize(text, font, font_scale, thickness)
+            
+            # 计算背景矩形坐标
+            x = int(point.x) + 5
+            y = int(point.y) - 5
+            
+            # 绘制背景矩形 (黑色半透明或实心黑底，这里用实心黑底保证对比度)
+            cv2.rectangle(img_draw, 
+                          (x, y - text_height - baseline), 
+                          (x + text_width, y + baseline), 
+                          (0, 0, 0), 
+                          -1)
+            
+            # 绘制文字
+            cv2.putText(img_draw, text, (x, y), font, font_scale, (255, 255, 255), thickness)
+            
         return img_draw
 
     @staticmethod
