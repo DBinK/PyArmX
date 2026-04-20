@@ -8,10 +8,12 @@ authors = [
 ]
 requires-python = ">=3.10"
 dependencies = [
+    "dotenv>=0.9.9",
     "keyboard>=0.13.5",
     "loguru>=0.7.3",
     "looptick>=0.1.4",
     "mujoco>=3.6.0",
+    "openai>=2.32.0",
     "pupil-apriltags>=1.0.4.post11",
     "pydamiao",
     "pygame>=2.6.1",

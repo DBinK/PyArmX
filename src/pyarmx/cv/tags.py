@@ -81,12 +81,54 @@ def draw_tags(img: MatLike, detections: list[Detection]):
     return img_draw
 
 
+def draw_integer_grid(img, detection, step=1, range_limit=100):
+    """
+    在图像上绘制 tag 平面整数坐标点
+    """
+    img_draw = img.copy()
+    H = detection.homography  # tag -> image
+
+    h, w = img.shape[:2]
+
+    for x in range(-range_limit, range_limit + 1, step):
+        for y in range(-range_limit, range_limit + 1, step):
+
+            p_tag = np.array([x, y, 1.0], dtype=np.float32)
+            p_img = H @ p_tag
+
+            # 齐次归一化
+            if p_img[2] == 0:
+                continue
+            p_img = p_img / p_img[2]
+
+            px, py = int(p_img[0]), int(p_img[1])
+
+            # 只画在图像内的点
+            if 0 <= px < w and 0 <= py < h:
+
+                # 点
+                cv2.circle(img_draw, (px, py), 2, (0, 255, 255), -1)
+
+                # 可选：标坐标（太密会很乱）
+                if x % 10 == 0 and y % 10 == 0:
+                    cv2.putText(
+                        img_draw,
+                        f"{x},{y}",
+                        (px + 3, py - 3),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.3,
+                        (0, 200, 255),
+                        1
+                    )
+
+    return img_draw
+
 if __name__ == "__main__":
 
     from rich import print as rprint
 
     # 读取图像
-    img_path = "img/blk_sen.jpg"
+    img_path = r"img\transport_nl\WIN_20260419_22_28_59_Pro.jpg"
     # img_path = "img/tags.jpg"
     img = cv2.imread(img_path)
 
@@ -102,8 +144,9 @@ if __name__ == "__main__":
 
     rprint(detections)
 
-    img_draw = draw_tags(img, detections)
+    img_draw = draw_integer_grid(img, detections[0])
     cv2.imshow("Warped Image", img_draw)
-    cv2.setMouseCallback("Warped Image", click_event)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+    print(detections[0].homography)
+    print(detections[0].tag_id)
