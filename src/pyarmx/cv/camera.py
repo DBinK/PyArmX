@@ -3,8 +3,6 @@ import time
 
 import cv2
 
-import cv2
-
 
 # 摄像头参数
 camera_params = {
@@ -78,7 +76,7 @@ class USBCamera:
 
 if __name__ == '__main__':
 
-    from pyarmx.cv.tags import pre_process, at_detector, draw_integer_grid, HomographyFilter
+    from pyarmx.cv.tags import pre_process, at_detector, draw_integer_grid, HomographyFilter, filter_by_size
     from pyarmx.utils.lowpass import LowPassFilter
 
     # lpf = LowPassFilter(alpha=0.03)
@@ -95,11 +93,13 @@ if __name__ == '__main__':
             frame_pre = pre_process(frame)
             rets = at_detector.detect(frame_pre) # type: ignore
 
-            # rets[0] = hmf.update(rets[0])
+            rets = filter_by_size(rets)
 
             if len(rets) > 0:
+                # homography = rets[0].homography
+                homography = hmf.update(rets[0]) 
                 # frame_rets = draw_integer_grid(frame, rets[0], homography_filter=hmf)
-                frame_rets = draw_integer_grid(frame, rets[0])
+                frame_rets = draw_integer_grid(frame, homography)
             else:
                 frame_rets = frame
 

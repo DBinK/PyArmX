@@ -26,7 +26,6 @@ def pre_process(img: MatLike):
 
     return img_bin
 
-
 # 鼠标回调函数
 def click_event(event, x, y, flags, param):
     if event == cv2.EVENT_LBUTTONDOWN:  # 检测左键点击事件
@@ -43,6 +42,64 @@ def click_event(event, x, y, flags, param):
         # cv2.circle(img_trans, (int(p_obj[0]), int(p_obj[1])), 50, (0, 0, 255), -1)
         # cv2.imshow('Warped Image', img_raw)  # 重新显示图像
 
+def get_tag_size(corners):
+    # 获取角点坐标的 NumPy 数组
+    x_coords = corners[:, 0]
+    y_coords = corners[:, 1]
+    
+    # 计算宽度和高度
+    width = np.max(x_coords) - np.min(x_coords)
+    height = np.max(y_coords) - np.min(y_coords)
+
+    # print(f"Tag size: width={width}, height={height}.")
+
+    return width, height
+
+
+def homo_trans(corners: list[float], width=int(1), height=int(1)):
+
+    """ 计算 将图像中的特定四边形区域 变换为目标长方形区域 所需的矩阵 H """
+
+    # 定义图像中的长方形四个顶点（根据你实际值设定）
+    image_points = np.array(corners, dtype='float32')
+
+    # 定义目标长方形的四个顶点
+    object_points = np.array([[0, 0], [width, 0], [width, height], [0, height]], dtype='float32')
+
+    # 计算同伦变换矩阵
+    H_matrix , _ = cv2.findHomography(image_points, object_points)
+    
+    if H_matrix is None:
+        raise ValueError("无法计算单应性矩阵")
+    
+    H_matrix = np.asarray(H_matrix, dtype=np.float64)
+
+    # 计算反向变换矩阵
+    H_inv = np.linalg.inv(H_matrix)
+
+    return H_matrix, H_inv
+
+
+def filter_by_size(detections: list[Detection], min_size=(100, 100), max_size=(2000, 2000)) -> list[Detection]:
+    valid_tags = []
+    for detection in detections:
+        corners = detection.corners  
+        # tag_id = detection.tag_id  
+        # x, y = detection.center.tolist()
+
+        # 计算标签大小
+        width, height = get_tag_size(corners)
+
+        # 根据大小过滤标签
+        if (min_size[0] <= width <= max_size[0]) and (min_size[1] <= height <= max_size[1]):
+            # print(f"Tag {tag_id} , center={(x, y)}")
+            valid_tags.append(detection)
+        else:
+            # print(f"Tag {tag_id} is filtered out due to size: width={width}, height={height}.")
+            continue
+    
+    return valid_tags
+    
 def draw_tags(img: MatLike, detections: list[Detection]):
 
     img_draw = img.copy()
@@ -81,18 +138,14 @@ def draw_tags(img: MatLike, detections: list[Detection]):
     return img_draw
 
 
-def draw_integer_grid(img, detection, step=1, range_limit=100, homography_filter=None):
+def draw_integer_grid(img, homography, step=1, range_limit=100, homography_filter=None):
     """
     在图像上绘制 tag 平面整数坐标点
     :param homography_filter: 可选的单应性矩阵滤波器
     """
     img_draw = img.copy()
     
-    # 如果提供了滤波器，使用滤波后的单应性矩阵
-    if homography_filter is not None:
-        H = homography_filter.update(detection)
-    else:
-        H = detection.homography  # tag -> image
+    H = homography
 
     h, w = img.shape[:2]
 
@@ -161,7 +214,7 @@ class HomographyFilter:
         self.previous_corners = filtered_corners
         
         # 使用滤波后的角点重新计算单应性矩阵
-        tag_size = 1.0  # tag的标准尺寸（可根据实际情况调整）
+        tag_size = 2.0  # tag的标准尺寸（可根据实际情况调整）
         object_points = np.array([
             [-tag_size/2, -tag_size/2, 0],
             [tag_size/2, -tag_size/2, 0],
@@ -207,5 +260,7 @@ if __name__ == "__main__":
     cv2.imshow("Warped Image", img_draw)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
     print(detections[0].homography)
     print(detections[0].tag_id)
+
