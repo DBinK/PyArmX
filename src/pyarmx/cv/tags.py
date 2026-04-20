@@ -1,6 +1,13 @@
 import cv2
 import numpy as np
+from typing import NamedTuple
 from pupil_apriltags import Detection, Detector
+
+
+class Point2D(NamedTuple):
+    """二维点坐标"""
+    x: float
+    y: float
 
 
 class HomographyFilter:
@@ -87,26 +94,28 @@ class TagLocator:
         return self.H_desk2pix, self.H_pix2desk, valid_detections
     
     
-    def desk_to_pixel(self, point: tuple[float, float]) -> tuple[int, int] | None:
+    def desk_to_pixel(self, point: Point2D) -> Point2D | None:
         """将桌面坐标转换为像素坐标(int)"""
         if self.H_desk2pix is not None:
             px, py = self.apply_transform(point, self.H_desk2pix)
-            return int(px), int(py)
+            return Point2D(int(px), int(py))
+        return None
         
-    def pixel_to_desk(self, point: tuple[float, float]) -> tuple[float, float] | None:
+    def pixel_to_desk(self, point: Point2D) -> Point2D | None:
         """将像素坐标转换为桌面坐标(float)"""
         if self.H_pix2desk is not None:
             return self.apply_transform(point, self.H_pix2desk)
+        return None
     
 
     @staticmethod
-    def apply_transform(point: tuple[float, float], H: np.ndarray) -> tuple[float, float]:
+    def apply_transform(point: Point2D, H: np.ndarray) -> Point2D:
         """执行齐次坐标系转换 (像素与物理坐标互转)"""
-        p = np.array([point[0], point[1], 1.0], dtype=np.float32)
+        p = np.array([point.x, point.y, 1.0], dtype=np.float32)
         p_trans = H @ p
         if p_trans[2] != 0:
             p_trans /= p_trans[2]
-        return float(p_trans[0]), float(p_trans[1])
+        return Point2D(float(p_trans[0]), float(p_trans[1]))
 
 
     @staticmethod
@@ -147,11 +156,11 @@ class TagLocator:
 class TagVisualizer:
     """封装所有可视化与调试绘图功能"""
     @staticmethod
-    def draw_point(img: np.ndarray, point: tuple[int, int], color: list=[0, 0, 255], text: str = ""):
+    def draw_point(img: np.ndarray, point: Point2D, color: list=[0, 0, 255], text: str = ""):
         """在指定位置绘制点与文字"""
         img_draw = img.copy()
-        cv2.circle(img_draw, point, 3, color, -1)
-        cv2.putText(img_draw, text, (point[0] + 5, point[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        cv2.circle(img_draw, (int(point.x), int(point.y)), 3, color, -1)
+        cv2.putText(img_draw, text, (int(point.x) + 5, int(point.y) - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
         return img_draw
 
     @staticmethod

@@ -81,6 +81,7 @@ if __name__ == "__main__":
     from pyarmx.cv.tags import (
         TagLocator,
         TagVisualizer,
+        Point2D,
     )
     
     locator = TagLocator()
@@ -105,7 +106,7 @@ if __name__ == "__main__":
             else:
                 frame_rets = frame
 
-            pix = locator.desk_to_pixel((300, -50))
+            pix = locator.desk_to_pixel(Point2D(300, -50))
             frame_rets = vis.draw_point(frame_rets, pix, text="nailong")
 
             cv2.namedWindow("frame_rets", cv2.WINDOW_NORMAL)
