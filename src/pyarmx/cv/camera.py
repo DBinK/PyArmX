@@ -3,18 +3,19 @@ import time
 
 import cv2
 
+import cv2
 
 
 # 摄像头参数
 camera_params = {
-    'camera_id': "/dev/video-4k",
-    # 'camera_id': 0,
+    # 'camera_id': "/dev/video-4k",
+    'camera_id': 1,
     # 'image_width': 1920,
     # 'image_height': 1080,
     'image_width': 1280,
     'image_height': 720,
-    'auto_exposure': 1,
-    'exposure_time': 5000,
+    'auto_exposure': 0,
+    'exposure_time': 1000,
     'fps': 30,
     'gain': 100,
     'auto_wb': 0,
@@ -23,22 +24,8 @@ camera_params = {
 }
 
 
-def time_diff(last_time=[None]):
-    """计算两次调用之间的时间差，单位为ns。"""
-    current_time = time.time_ns()     # 获取当前时间（单位：ns）
-
-    if last_time[0] is None:          # 如果是第一次调用，更新 last_time
-        last_time[0] = current_time
-        return 0.000_000_1            # 防止第一次调用时的除零错误
-    
-    else: # 计算时间差
-        diff = current_time - last_time[0]  # 计算时间差
-        last_time[0] = current_time         # 更新上次调用时间
-        return diff                         # 返回时间差 ns
-
-
 class USBCamera:
-    def __init__(self):
+    def __init__(self, camera_params: dict):
         # 获取相机参数
         self.fps = camera_params.get('fps', 60)
         self.camera_id = camera_params.get('camera_id', 0)
@@ -53,7 +40,9 @@ class USBCamera:
 
         # 初始化相机
         print(f'开始初始化 {self.camera_id} 号相机相机...')
-        self.cap = cv2.VideoCapture(self.camera_id)
+        self.cap = cv2.VideoCapture(self.camera_id, cv2.CAP_DSHOW)
+        # self.cap = cv2.VideoCapture(self.camera_id, cv2.CAP_FFMPEG)
+        # self.cap = cv2.VideoCapture(self.camera_id)
         self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # 设置缓冲区大小为 1, 只读取最新一帧
 
         print(f'初始化了 {self.camera_id} 号相机, 开始设置参数...')
@@ -74,15 +63,48 @@ class USBCamera:
         self.cap.set(cv2.CAP_PROP_FPS, self.fps)
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.image_width)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.image_height)
-        self.cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, self.auto_exposure)
+        # self.cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, self.auto_exposure)
         self.cap.set(cv2.CAP_PROP_EXPOSURE, self.exposure_time)
-        self.cap.set(cv2.CAP_PROP_GAIN, self.gain)
-        self.cap.set(cv2.CAP_PROP_AUTO_WB, self.auto_wb)  # 关闭自动白平衡
-        self.cap.set(cv2.CAP_PROP_WB_TEMPERATURE, self.wb_temperature)  # 设置白平衡色温
-        self.cap.set(cv2.CAP_PROP_CONTRAST, self.contrast)
+        # self.cap.set(cv2.CAP_PROP_GAIN, self.gain)
+        # self.cap.set(cv2.CAP_PROP_AUTO_WB, self.auto_wb)  # 关闭自动白平衡
+        # self.cap.set(cv2.CAP_PROP_WB_TEMPERATURE, self.wb_temperature)  # 设置白平衡色温
+        # self.cap.set(cv2.CAP_PROP_CONTRAST, self.contrast)
 
 
         print(f"设置的相机: {self.camera_id} 号相机")
         print(f"设置的分辨率: {self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)} x {self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)}")
         print(f"设置的帧率: {self.cap.get(cv2.CAP_PROP_FPS)}")
 
+
+if __name__ == '__main__':
+
+    from pyarmx.cv.tags import pre_process, at_detector, draw_integer_grid, HomographyFilter
+    from pyarmx.utils.lowpass import LowPassFilter
+
+    # lpf = LowPassFilter(alpha=0.03)
+    hmf = HomographyFilter(0.1)
+
+    cam = USBCamera(camera_params)
+    # cap = cv2.VideoCapture(1,  cv2.CAP_DSHOW)
+
+    while True:
+        
+        ret, frame = cam.cap.read()
+        # ret, frame = cap.read()
+        if ret:
+            frame_pre = pre_process(frame)
+            rets = at_detector.detect(frame_pre) # type: ignore
+
+            # rets[0] = hmf.update(rets[0])
+
+            if len(rets) > 0:
+                # frame_rets = draw_integer_grid(frame, rets[0], homography_filter=hmf)
+                frame_rets = draw_integer_grid(frame, rets[0])
+            else:
+                frame_rets = frame
+
+            cv2.imshow('frame_rets', frame_rets)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+        else:
+            break

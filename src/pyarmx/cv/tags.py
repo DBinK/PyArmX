@@ -81,12 +81,18 @@ def draw_tags(img: MatLike, detections: list[Detection]):
     return img_draw
 
 
-def draw_integer_grid(img, detection, step=1, range_limit=100):
+def draw_integer_grid(img, detection, step=1, range_limit=100, homography_filter=None):
     """
     在图像上绘制 tag 平面整数坐标点
+    :param homography_filter: 可选的单应性矩阵滤波器
     """
     img_draw = img.copy()
-    H = detection.homography  # tag -> image
+    
+    # 如果提供了滤波器，使用滤波后的单应性矩阵
+    if homography_filter is not None:
+        H = homography_filter.update(detection)
+    else:
+        H = detection.homography  # tag -> image
 
     h, w = img.shape[:2]
 
@@ -122,6 +128,59 @@ def draw_integer_grid(img, detection, step=1, range_limit=100):
                     )
 
     return img_draw
+
+
+class HomographyFilter:
+    """单应性矩阵滤波器 - 通过对角点滤波实现"""
+    
+    def __init__(self, alpha=0.7):
+        """
+        初始化滤波器
+        :param alpha: 滤波系数，越大响应越快但噪声越多，越小越平滑但延迟越高
+        """
+        self.alpha = alpha
+        self.previous_corners = None
+    
+    def update(self, detection: Detection) -> np.ndarray:
+        """
+        更新并返回滤波后的单应性矩阵
+        :param detection: AprilTag检测结果
+        :return: 滤波后的3x3单应性矩阵
+        """
+        corners = detection.corners
+        
+        if corners is None:
+            return detection.homography
+        
+        if self.previous_corners is None:
+            self.previous_corners = corners.copy()
+            return detection.homography
+        
+        # 对角点进行指数移动平均滤波
+        filtered_corners = self.alpha * corners + (1 - self.alpha) * self.previous_corners
+        self.previous_corners = filtered_corners
+        
+        # 使用滤波后的角点重新计算单应性矩阵
+        tag_size = 1.0  # tag的标准尺寸（可根据实际情况调整）
+        object_points = np.array([
+            [-tag_size/2, -tag_size/2, 0],
+            [tag_size/2, -tag_size/2, 0],
+            [tag_size/2, tag_size/2, 0],
+            [-tag_size/2, tag_size/2, 0]
+        ], dtype=np.float32)
+        
+        image_points = filtered_corners.astype(np.float32)
+        
+        # 计算新的单应性矩阵
+        H, _ = cv2.findHomography(object_points[:, :2], image_points)
+        
+        return H
+    
+    def reset(self):
+        """重置滤波器状态"""
+        self.previous_corners = None
+
+
 
 if __name__ == "__main__":
 

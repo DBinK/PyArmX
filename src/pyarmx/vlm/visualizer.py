@@ -72,28 +72,28 @@ def draw_bbox(
     # 中文任务和 say 用贴图方式
     if prompt is not None:
         text_img = render_text_img(
-            f"prompt: {prompt}", font_size=20, color=(255, 255, 0)
+            f"prompt: {prompt}", font_size=40, color=(255, 255, 0)
         )
-        img = overlay_image(img, text_img, 10, h - 90)
+        img = overlay_image(img, text_img, 10, h - 160)
     if say:
-        text_img = render_text_img(f"say: {say}", font_size=20, color=(255, 255, 255))
-        img = overlay_image(img, text_img, 10, h - 60)
+        text_img = render_text_img(f"say: {say}", font_size=40, color=(255, 255, 255))
+        img = overlay_image(img, text_img, 10, h - 110)
     if task:
-        text_img = render_text_img(f"task: {task}", font_size=20, color=(255, 255, 255))
-        img = overlay_image(img, text_img, 10, h - 30)
+        text_img = render_text_img(f"task: {task}", font_size=40, color=(255, 255, 255))
+        img = overlay_image(img, text_img, 10, h - 60)
 
     # 显示任务描述（如果存在）
     if acts:
         # 设置字体和大小
         font = cv2.FONT_HERSHEY_SIMPLEX
-        font_scale = 0.7
+        font_scale = 1.0
         thickness = 2
 
         # 计算所有动作文本的尺寸
         act_strings = [
             f"{act[0]}({act[1]})" if len(act) > 1 else act[0] for act in acts
         ]
-        line_height = 30  # 每行的高度
+        line_height = 40  # 每行的高度
         start_y = 30  # 起始Y位置
 
         # 绘制每个动作
@@ -148,12 +148,12 @@ def draw_bbox(
         # 绘制边界框
         cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
         # 绘制文字标签
-        text_size = cv2.getTextSize(name, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)[0]
+        text_size = cv2.getTextSize(name, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2)[0]
         cv2.rectangle(
             img, (x1, y1 - text_size[1] - 4), (x1 + text_size[0], y1), color, -1
         )
         cv2.putText(
-            img, name, (x1, y1 - 2), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2
+            img, name, (x1, y1 - 2), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2
         )
 
     if output_path:
@@ -164,12 +164,9 @@ def draw_bbox(
 
 
 if __name__ == "__main__":
-    image_path = "tmp/test1.png"
-    # image_path = "tmp/test_resized.png"
+    img_path = r"img\transport_nl\WIN_20260419_22_28_59_Pro.jpg" 
 
-    # 紧凑数组格式
     result_json_fix = """
-
 
 {
   "say": "目标物体为黄色玩偶和胶带卷，正在执行放置任务",
@@ -187,13 +184,31 @@ if __name__ == "__main__":
 }
     """
 
+    result_json_fix = """
+    {
+    "say": "目标物体为黄色方块和胶带，正在拾取并放置",
+    "task": "移动到黄色方块处并抓取，然后移动到胶带处并释放",
+    "acts": [
+        ["move_to", "yellow_block"],
+        ["grip"],
+        ["move_to", "tape"],
+        ["release"]
+    ],
+    "objs": {
+        "yellow_block": [765, 384, 862, 509],
+        "tape": [565, 219, 711, 458]
+    }
+    }
+    """
+
     prompt = "把奶龙放到白色托盘里"
 
     result_list = json.loads(result_json_fix)
 
-    img = draw_bbox(image_path, result_list)
-    cv2.imshow("YOLO", img)
+    # img = draw_bbox(img_path, result_list)
+    # cv2.imshow("YOLO", img)
 
-    img = draw_bbox(image_path, result_list, prompt, None, 1000.0)
+    img = draw_bbox(img_path, result_list, prompt, None, 1000.0)
+    cv2.namedWindow("YOLO_NORM", cv2.WINDOW_NORMAL)
     cv2.imshow("YOLO_NORM", img)
     cv2.waitKey(0)
