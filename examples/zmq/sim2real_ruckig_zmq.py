@@ -3,36 +3,35 @@ import time
 
 import numpy as np
 
-from pyarmx.ik import IKSolver
-from pyarmx.interp import RuckigPosePlanner
-from pyarmx.sim import ArmSimulator
-from pyarmx.input.keyboard import PlaybackInput
+from pydamiao.arm.config import joint_cfgs
+from pydamiao.arm.joint import JointManager
+from pydamiao.bus import SerialBus
+from pydamiao.structs import ControlMode
 
 from scipy.spatial.transform import Rotation as R
 
+from pyarmx.ik import IKSolver
+from pyarmx.input.keyboard import PlaybackInput
+from pyarmx.input.zmq_sub import PoseReceiver
+from pyarmx.interp import RuckigPosePlanner
+from pyarmx.sim import ArmSimulator
+from pyarmx.structs import Pose
 from pyarmx.utils.log import fmt_arr
 from pyarmx.utils.loops import Rate, Timer
-from pyarmx.input.zmq_sub import PoseReceiver
-from pyarmx.structs import Pose
-
-from pydamiao.bus import SerialBus
-from pydamiao.arm.config import joint_cfgs
-from pydamiao.arm.joint import JointManager
-from pydamiao.structs import ControlMode
 
 # 真实机械臂
-bus = SerialBus("COM9", baudrate=921600, timeout=0.01)
-manager = JointManager(bus)
+# bus = SerialBus("COM9", baudrate=921600, timeout=0.01)
+# manager = JointManager(bus)
 
-# 注册joint
-manager.register(joint_cfgs)
+# # 注册joint
+# manager.register(joint_cfgs)
 
-# 设置初始状态
-manager.clean_error()
-manager.enable()
-# manager.set_teach_mode()
-# manager.set_mode(ControlMode.POS_FORCE)
-manager.set_mode(ControlMode.POS_VEL)
+# # 设置关节电机初始状态
+# manager.clean_error()
+# manager.enable()
+# # manager.set_teach_mode()
+# # manager.set_mode(ControlMode.POS_FORCE)
+# manager.set_mode(ControlMode.POS_VEL)
 
 
 # 初始化仿真与控制
@@ -41,8 +40,6 @@ MODEL_PATH = "xml/L801/scene.xml"
 ARM_DOF = 6
 
 sim = ArmSimulator(MODEL_PATH, arm_dof=ARM_DOF)
-
-
 ik_solver = IKSolver(
     fk_func=sim.get_fk_mat,
     jac_func=sim.get_jacobian,
@@ -55,18 +52,20 @@ ik_solver = IKSolver(
 # 初始化 Ruckig 规划器
 planner = RuckigPosePlanner(buffer_size=10) 
 
-
 # 控制信号输入
 pose_input = PoseReceiver()
 playback = PlaybackInput()
 
-
 # 初始位姿
-q_current = np.asanyarray(manager.get_joints_pos_list())
+# q_current = np.asanyarray(manager.get_joints_pos_list())
+q_current = np.asanyarray(sim.get_q_current())
+# q_current = np.zeros(ARM_DOF)
+
 init_pos = np.array([0.008, 0.072, 0.086])
 init_quat = np.array([0.006, -0.005, -0.022, 1.000])
 init_pose_7d = np.concatenate([init_pos, init_quat])
 
+# 初始化轨迹插值
 planner.set_init_pose(init_pose_7d)
 planner.start()
 
@@ -74,9 +73,9 @@ sim.viewer = sim.launch()
 
 # 主循环
 target_7d = Pose.from_pos_quat(init_pos, init_quat)
-last_7d = Pose.from_pos_quat(init_pos, init_quat)
+# last_7d = Pose.from_pos_quat(init_pos, init_quat)
 
-print("[Sim] 系统就绪。使用键盘移动红色目标点，机械臂将平滑追踪。")
+print("系统就绪。使用键盘移动红色目标点，机械臂将平滑追踪。")
 
 loop = Rate(hz=100)
 timer = Timer(duration=0.1)
@@ -84,19 +83,17 @@ timer = Timer(duration=0.1)
 while sim.viewer.is_running() and loop.sleep():
 
     try:
-        # 更新最终目标
-        ret = pose_input.update(target_7d)  # 内部更新了 Pose 对象
-        
-        pos_diff = target_7d.pos_dist(last_7d)
-        quat_diff = target_7d.quat_dist(last_7d)
-        
-        if pos_diff > 1e-4 or quat_diff > 1e-4:
-            planner.set_target(target_7d.array)
-        
-        # 更新显示目标点
-        sim.update_target_dot(target_7d.pos)
+        # # 更新当前状态
+        # last_7d.pos, last_7d.quat = sim.get_ee_pose()
 
-        # 获取平滑轨迹点
+        # 更新最终目标位姿
+        ret = pose_input.update(target_7d)  # 内部更新了 Pose 对象
+
+        # 更新显示目标点
+        sim.update_target_dot(target_7d.pos)   
+
+        # 获取平滑后的轨迹点
+        planner.set_target(target_7d.array)
         smooth_pose = planner.get_pose(block=False, timeout=0)
         
         if smooth_pose is None:
@@ -115,10 +112,11 @@ while sim.viewer.is_running() and loop.sleep():
             sim.viewer.sync()
         else:
             sim.step(q_command)
-            manager.set_pos_list(q_command.tolist(), ControlMode.POS_VEL)
+            # manager.set_pos_list(q_command.tolist(), ControlMode.POS_VEL)
 
-        # 更新当前状态, 此处直接用 q_command , 真机可以考虑用真实的 q_current
+        # 更新当前状态, 此处直接用仿真中的 q_current , 真机可以考虑用真实的 q_current
         q_current = sim.get_q_current() 
+        # q_current = np.asanyarray(manager.get_joints_pos_list())
 
         # 监控日志
         if timer.done:
@@ -138,5 +136,5 @@ while sim.viewer.is_running() and loop.sleep():
             timer.reset()
             
     except KeyboardInterrupt:
-        manager.disable()
-        bus.close()
+        # manager.disable()
+        pass

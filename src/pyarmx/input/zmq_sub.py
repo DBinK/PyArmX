@@ -17,7 +17,8 @@ class PoseReceiver:
         self.socket.setsockopt(zmq.CONFLATE, 1)
         
         # 接收端作为稳定的核心节点，使用 bind
-        self.socket.bind(f"tcp://*:{port}")
+        # self.socket.bind(f"tcp://*:{port}")
+        self.socket.bind(f"tcp://127.0.0.1:{port}")
         self.socket.setsockopt_string(zmq.SUBSCRIBE, "") 
         
         self._latest_target = None
@@ -54,6 +55,7 @@ class PoseReceiver:
         Returns:
             bool: 更新成功返回 True，失败或无新数据返回 False
         """
+        self.fetch_latest()
         if self._latest_target is None:
             return False
         
@@ -80,6 +82,8 @@ if __name__ == "__main__":
     
     # 创建接收器实例
     receiver = PoseReceiver()
+
+    print("Waiting for messages...")
 
     # 循环接收并打印消息
     while True:

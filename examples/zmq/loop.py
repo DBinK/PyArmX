@@ -29,6 +29,14 @@ for tick in loop:
     new_pos, new_quat = controller.update(last_7d.pos, last_7d.quat, 1/hz)
     target_7d.update(new_pos, new_quat)
 
+    # pos_diff = target_7d.pos_dist(last_7d)
+    # quat_diff = target_7d.quat_dist(last_7d)
+
+    # if pos_diff > 1e-4 or quat_diff > 1e-4:
+    #     print(f"{pos_diff=}, {quat_diff=}")
+    # else:
+    #     print(f"{fmt_arr(last_7d.array)=} , {fmt_arr(target_7d.array)=}")
+
     sender.send_target(target_7d.array)
 
     last_7d.update(new_pos, new_quat)

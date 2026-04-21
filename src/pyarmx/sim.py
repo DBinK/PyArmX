@@ -45,6 +45,13 @@ class ArmSimulator:
         quat = R.from_matrix(rot).as_quat()
         return pos, quat
 
+    def get_ee_pose(self):
+        mujoco.mj_forward(self.model, self.data)
+        pos = self.data.site_xpos[self.site_id].copy()
+        rot = self.data.site_xmat[self.site_id].reshape(3, 3).copy()
+        quat = R.from_matrix(rot).as_quat()
+        return pos, quat
+
     def get_jacobian(self, q: np.ndarray):
         """获取Jacobian"""
         self.data.qpos[:self.arm_dof] = q
