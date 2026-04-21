@@ -174,3 +174,23 @@ class Pose7D:
         instance = cls()
         instance.update(pos, quat)
         return instance
+    
+    def __matmul__(self, other: "Pose7D") -> "Pose7D":
+        """
+        重载 @ 运算符，实现位姿的级联变换 (Pose Composition)。
+        用法: pose_C = pose_A @ pose_B
+        """
+        if not isinstance(other, Pose7D):
+            return NotImplemented  # 允许 Python 尝试其他类型的反向运算
+        
+        # 1. 旋转部分的级联: R_new = R_A * R_B
+        r_a = R.from_quat(self.quat)
+        r_b = R.from_quat(other.quat)
+        r_new = r_a * r_b  # scipy 中 Rotation 的乘法就是连续旋转的组合
+        
+        # 2. 平移部分的级联: P_new = P_A + R_A * P_B
+        # r_a.apply() 会将 other.pos 这个向量，用 r_a 进行旋转变换
+        p_new = self.pos + r_a.apply(other.pos)
+        
+        # 3. 返回全新的位姿对象
+        return Pose7D.from_pos_quat(p_new, r_new.as_quat())
