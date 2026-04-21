@@ -6,7 +6,7 @@ import numpy as np
 from pyarmx.ik import IKSolver
 from pyarmx.interp import RuckigPosePlanner
 from pyarmx.sim import ArmSimulator
-from pyarmx.input import PoseInput, PlaybackInput
+from pyarmx.input.keyboard import PoseInput, PlaybackInput
 
 from scipy.spatial.transform import Rotation as R
 
@@ -77,59 +77,65 @@ timer = Timer(duration=0.1)
 
 while sim.viewer.is_running() and loop.sleep():
 
-    # 更新最终目标
-    new_target_pos, new_target_quat = pose_input.update(
-        final_target_pos, final_target_quat, sim.dt
-    )
-    
-    pos_diff = np.linalg.norm(new_target_pos - final_target_pos)
-    quat_diff = 1.0 - np.abs(np.dot(new_target_quat, final_target_quat))
-    
-    if pos_diff > 1e-4 or quat_diff < 0.9999:
-        final_target_pos = new_target_pos
-        final_target_quat = new_target_quat
-        
-        target_7d = np.concatenate([final_target_pos, final_target_quat])
-        planner.set_target(target_7d)
-        
-    sim.update_target_dot(new_target_pos)
-
-    # 获取平滑轨迹点
-    smooth_pose = planner.get_pose(block=False, timeout=0)
-    
-    if smooth_pose is None:
-        exec_pos, exec_quat = sim.get_fk_quat(q_current)
-    else:
-        exec_pos  = smooth_pose[:3]
-        exec_quat = smooth_pose[3:]
-
-    # IK 求解并执行
-    q_command = ik_solver.solve(q_current, exec_pos, exec_quat)
-    if q_command is None or np.any(np.isnan(q_command)):  # 检测是否异常
-        q_command = q_current
-    
-    # 设置关节
-    if pause := playback.is_pause():  # 暂停
-        sim.step(q_command)
-        manager.set_pos_list(q_command.tolist(), ControlMode.POS_VEL)
-    else:
-        sim.viewer.sync()
-
-    # 更新当前状态, 此处直接用 q_command , 真机可以考虑用真实的 q_current
-    q_current = sim.get_q_current() 
-
-    # 监控日志
-    if timer.done:
-        current_actual_pos, current_actual_quat = sim.get_fk_quat(q_current)
-        
-        p_err = np.linalg.norm(exec_pos - current_actual_pos)
-        
-        current_rot = R.from_quat(current_actual_quat).as_matrix()
-        target_rot = R.from_quat(exec_quat).as_matrix()
-        r_err = np.linalg.norm(IKSolver._rotation_error(current_rot, target_rot))
-
-        print(
-            f"\rTrack Err P:{p_err:.4f} R:{r_err:.4f} | Target P:{fmt_arr(final_target_pos)}",
-            end="",
+    try:
+        # 更新最终目标
+        new_target_pos, new_target_quat = pose_input.update(
+            final_target_pos, final_target_quat, sim.dt
         )
-        timer.reset()
+        
+        pos_diff = np.linalg.norm(new_target_pos - final_target_pos)
+        quat_diff = 1.0 - np.abs(np.dot(new_target_quat, final_target_quat))
+        
+        if pos_diff > 1e-4 or quat_diff > 1e-4:
+            final_target_pos = new_target_pos
+            final_target_quat = new_target_quat
+            
+            target_7d = np.concatenate([final_target_pos, final_target_quat])
+            planner.set_target(target_7d)
+            
+        sim.update_target_dot(new_target_pos)
+
+        # 获取平滑轨迹点
+        smooth_pose = planner.get_pose(block=False, timeout=0)
+        
+        if smooth_pose is None:
+            exec_pos, exec_quat = sim.get_fk_quat(q_current)
+        else:
+            exec_pos  = smooth_pose[:3]
+            exec_quat = smooth_pose[3:]
+
+        # IK 求解并执行
+        q_command = ik_solver.solve(q_current, exec_pos, exec_quat)
+        if q_command is None or np.any(np.isnan(q_command)):  # 检测是否异常
+            q_command = q_current
+        
+        # 设置关节
+        if pause := playback.is_pause():  # 暂停
+            sim.step(q_command)
+            manager.set_pos_list(q_command.tolist(), ControlMode.POS_VEL)
+        else:
+            sim.viewer.sync()
+
+        # 更新当前状态, 此处直接用 q_command , 真机可以考虑用真实的 q_current
+        q_current = sim.get_q_current() 
+
+        # 监控日志
+        if timer.done:
+            current_actual_pos, current_actual_quat = sim.get_fk_quat(q_current)
+            
+            p_err = np.linalg.norm(exec_pos - current_actual_pos)
+            
+            current_rot = R.from_quat(current_actual_quat).as_matrix()
+            target_rot = R.from_quat(exec_quat).as_matrix()
+            rot_diff = current_rot @ target_rot.T
+            r_err = np.arccos((np.trace(rot_diff) - 1) / 2)
+
+            print(
+                f"\rTrack Err P:{p_err:.4f} R:{r_err:.4f} | Target P:{fmt_arr(final_target_pos)}",
+                end="",
+            )
+            timer.reset()
+            
+    finally:
+        manager.disable()
+        bus.close()

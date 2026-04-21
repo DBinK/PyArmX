@@ -3,7 +3,7 @@ import time
 import numpy as np
 
 from pyarmx.sim import ArmSimulator
-from pyarmx.input import JointInput
+from pyarmx.input.keyboard import JointInput
 
 from pyarmx.utils.log import fmt_arr
 from pyarmx.utils.loops import Rate, Timer

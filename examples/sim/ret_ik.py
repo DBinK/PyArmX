@@ -6,7 +6,7 @@ import numpy as np
 
 from pyarmx.ik import IKSolver
 from pyarmx.sim import ArmSimulator
-from pyarmx.input import PoseInput, PlaybackInput
+from pyarmx.input.keyboard import PoseInput, PlaybackInput
 
 from scipy.spatial.transform import Rotation as R
 

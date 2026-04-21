@@ -5,7 +5,7 @@ import numpy as np
 
 from pyarmx.ik import IKSolver
 from pyarmx.sim import ArmSimulator
-from pyarmx.input import JointInput, PoseInput
+from pyarmx.input.keyboard import JointInput, PoseInput
 
 from scipy.spatial.transform import Rotation as R
 

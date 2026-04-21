@@ -5,10 +5,22 @@ from scipy.spatial.transform import Rotation as R
 from pyarmx.interp import RuckigPosePlanner 
 from pyarmx.ik import IKSolver
 from pyarmx.sim import ArmSimulator
-from pyarmx.input import PoseInput
+from pyarmx.input.keyboard import PoseInput
 
 from pyarmx.utils.log import fmt_arr
 from pyarmx.utils.loops import Rate, Timer
+
+import rerun as rr
+
+# 初始化 Rerun 会话，指定应用名称
+rr.init("dt")
+# rr.save("tmp/data.rrd")  # 保存到文件
+rr.spawn()  # 启动本地可视化查看器
+
+def rrlog_dt(dt):
+    rr.set_time("time", timestamp=time.time())
+    rr.log("dt", rr.Scalars(float(dt)))
+
 
 # MODEL_PATH = "xml/L20/scene.xml"
 MODEL_PATH = "xml/L801/scene.xml"
@@ -60,7 +72,7 @@ while sim.viewer.is_running() and loop.sleep():
     pos_diff = np.linalg.norm(new_target_pos - final_target_pos)
     quat_diff = 1.0 - np.abs(np.dot(new_target_quat, final_target_quat))
     
-    if pos_diff > 1e-4 or quat_diff < 0.9999:
+    if pos_diff > 1e-4 or quat_diff > 1e-4:
         final_target_pos = new_target_pos
         final_target_quat = new_target_quat
         
@@ -87,6 +99,10 @@ while sim.viewer.is_running() and loop.sleep():
     sim.step(q_command)
     q_current = q_command 
 
+    # print(f"{loop.tick.delta:.6f} {loop.tick.on_time} ")
+
+    rrlog_dt(loop.tick.delta)
+
     # 监控日志
     if timer.done:
         current_actual_pos, current_actual_quat = sim.get_fk_quat(q_current)
@@ -95,7 +111,8 @@ while sim.viewer.is_running() and loop.sleep():
         
         current_rot = R.from_quat(current_actual_quat).as_matrix()
         target_rot = R.from_quat(exec_quat).as_matrix()
-        r_err = np.linalg.norm(IKSolver._rotation_error(current_rot, target_rot))
+        rot_diff = current_rot @ target_rot.T
+        r_err = np.arccos((np.trace(rot_diff) - 1) / 2)
 
         print(
             f"\rTrack Err P:{p_err:.4f} R:{r_err:.4f} | Target P:{fmt_arr(final_target_pos)}",
