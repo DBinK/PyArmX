@@ -2,8 +2,7 @@ from enum import IntEnum
 
 import numpy as np
 from loguru import logger
-
-from pydamiao.arm.joint import JointManager, JointCfg
+from pydamiao.arm.joint import JointCfg, JointManager
 from pydamiao.bus import SerialBus
 from pydamiao.structs import ControlMode, MotorType
 
@@ -46,7 +45,6 @@ class ArmRealFacade:
 
     def set_q_current(self, q_command: np.ndarray) -> None:
         """接收关节角指令并下发至硬件"""
-        # 转换为 Python 内置 list 以适配底层 C++ / 串口驱动接口
         self.manager.set_pos_list(q_command.tolist(), ControlMode.POS_VEL)
 
     def close(self) -> None:
@@ -55,3 +53,7 @@ class ArmRealFacade:
         self.bus.close()
         logger.warning("真实机械臂已安全下电")
 
+
+if __name__ == "__main__":
+    arm = ArmRealFacade()
+    arm.close()

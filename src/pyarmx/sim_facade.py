@@ -53,6 +53,12 @@ class ArmSimFacade:
         # 启动可视化
         self.sim.viewer = self.sim.launch()
         logger.info("高层仿真类初始化完成")
+    
+    @property
+    def running(self) -> bool:
+        if self.sim.viewer is None:
+            return False
+        return self.sim.viewer.is_running()
 
     def get_ee_pose(self) -> tuple[np.ndarray, np.ndarray]:
         """获取当前末端真实位置和四元数"""
