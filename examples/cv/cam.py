@@ -13,14 +13,14 @@ if __name__ == "__main__":
     locator = TagLocator()
     vis = TagVisualizer()
 
-    cam = UVCamera(CamCfg())
+    cam = UVCamera(CamCfg(cam_id=1))
     # cap = cv2.VideoCapture(1,  cv2.CAP_DSHOW)
 
     while True:
-        ret = True
-        frame = cv2.imread(r"img\pick\WIN_20260420_23_49_29_Pro.jpg")
+        # ret = True
+        # frame = cv2.imread(r"img\pick\WIN_20260420_23_49_29_Pro.jpg")
 
-        # ret, frame = cam.cap.read()
+        ret, frame = cam.cap.read()
         # ret, frame = cap.read()
 
         if ret and frame is not None:
@@ -32,8 +32,8 @@ if __name__ == "__main__":
             else:
                 frame_rets = frame
 
-            pix = locator.desk_to_pixel(Point2D(300, -50))
-            frame_rets = vis.draw_point(frame_rets, pix, text="nailong") # type: ignore
+            # pix = locator.desk_to_pixel(Point2D(300, -50))
+            # frame_rets = vis.draw_point(frame_rets, pix, text="nailong") # type: ignore
 
             cv2.namedWindow("frame_rets", cv2.WINDOW_NORMAL)
             cv2.imshow("frame_rets", frame_rets)

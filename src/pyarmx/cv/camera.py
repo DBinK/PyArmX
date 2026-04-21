@@ -24,7 +24,7 @@ class CamCfg:
 
 
 class UVCamera:
-    def __init__(self, config: CamCfg):
+    def __init__(self, config: CamCfg = CamCfg()):
         self.cfg = config
         self.settings = {}
         self.cap = self._init_camera()
@@ -62,8 +62,15 @@ class UVCamera:
         return cap
 
     def read(self):
-        ret, frame = self.cap.read()
-        return ret, frame
+        return self.cap.read()
+    
+    def shot(self, path):
+        ret, frame = self.read()
+        if ret:
+            cv2.imwrite(path, frame)
+            return True
+        else:
+            return False
 
     def release(self):
         self.cap.release()

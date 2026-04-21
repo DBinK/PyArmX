@@ -1,12 +1,11 @@
 import base64
 import json
 import time
-from typing import Dict, Any
 from rich import print
 from openai import OpenAI
 from pyarmx.vlm.config import ModelCfg
 
-LLM_TIMEOUT = 180.0   # 默认3分钟超时
+LLM_TIMEOUT = 60.0   # 默认3分钟超时
 
 class ChatBot:
     def __init__(self, config: 'ModelCfg', silent: bool = False):
@@ -24,10 +23,16 @@ class ChatBot:
         self.conversation = [{"role": "system", "content": self.system_prompt}]
 
     # ===================== 工具函数 =====================
-    def encode_image(self, image_path: str) -> str:
+    def encode_img_path(self, image_path: str) -> str:
         """将图像编码为 base64 字符串"""
         with open(image_path, "rb") as f:
             return base64.b64encode(f.read()).decode("utf-8")
+
+    def encode_img_cv2(self, img) -> str:
+        """将 cv2 图片（numpy 数组）编码为 base64 字符串 """
+        import cv2
+        _, encoded_img = cv2.imencode('.jpg', img)
+        return base64.b64encode(encoded_img.tobytes()).decode('utf-8')
 
     def extract_json(self, response_text: str) -> str | None:
         """从文本中提取 JSON 内容"""

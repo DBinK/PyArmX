@@ -1,16 +1,19 @@
 
+import time
 
 import numpy as np
 
 from pyarmx.ik import IKSolver
 from pyarmx.interp import RuckigPosePlanner
 from pyarmx.sim import ArmSimulator
-from pyarmx.input.keyboard import PoseInput, PlaybackInput
+from pyarmx.input.keyboard import PlaybackInput
 
 from scipy.spatial.transform import Rotation as R
 
 from pyarmx.utils.log import fmt_arr
 from pyarmx.utils.loops import Rate, Timer
+from pyarmx.input.zmq_sub import PoseReceiver
+from pyarmx.structs import Pose
 
 from pydamiao.bus import SerialBus
 from pydamiao.arm.config import joint_cfgs
@@ -39,8 +42,6 @@ ARM_DOF = 6
 
 sim = ArmSimulator(MODEL_PATH, arm_dof=ARM_DOF)
 
-pose_input = PoseInput()
-playback = PlaybackInput()
 
 ik_solver = IKSolver(
     fk_func=sim.get_fk_mat,
@@ -54,6 +55,12 @@ ik_solver = IKSolver(
 # 初始化 Ruckig 规划器
 planner = RuckigPosePlanner(buffer_size=10) 
 
+
+# 控制信号输入
+pose_input = PoseReceiver()
+playback = PlaybackInput()
+
+
 # 初始位姿
 q_current = np.asanyarray(manager.get_joints_pos_list())
 init_pos = np.array([0.008, 0.072, 0.086])
@@ -66,8 +73,8 @@ planner.start()
 sim.viewer = sim.launch()
 
 # 主循环
-final_target_pos = init_pos.copy()
-final_target_quat = init_quat.copy()
+target_7d = Pose.from_pos_quat(init_pos, init_quat)
+last_7d = Pose.from_pos_quat(init_pos, init_quat)
 
 print("[Sim] 系统就绪。使用键盘移动红色目标点，机械臂将平滑追踪。")
 
@@ -78,21 +85,16 @@ while sim.viewer.is_running() and loop.sleep():
 
     try:
         # 更新最终目标
-        new_target_pos, new_target_quat = pose_input.update(
-            final_target_pos, final_target_quat, sim.dt
-        )
+        ret = pose_input.update(target_7d)  # 内部更新了 Pose 对象
         
-        pos_diff = np.linalg.norm(new_target_pos - final_target_pos)
-        quat_diff = 1.0 - np.abs(np.dot(new_target_quat, final_target_quat))
+        pos_diff = target_7d.pos_dist(last_7d)
+        quat_diff = target_7d.quat_dist(last_7d)
         
         if pos_diff > 1e-4 or quat_diff > 1e-4:
-            final_target_pos = new_target_pos
-            final_target_quat = new_target_quat
-            
-            target_7d = np.concatenate([final_target_pos, final_target_quat])
-            planner.set_target(target_7d)
-            
-        sim.update_target_dot(new_target_pos)
+            planner.set_target(target_7d.array)
+        
+        # 更新显示目标点
+        sim.update_target_dot(target_7d.pos)
 
         # 获取平滑轨迹点
         smooth_pose = planner.get_pose(block=False, timeout=0)
@@ -130,7 +132,7 @@ while sim.viewer.is_running() and loop.sleep():
             r_err = np.arccos((np.trace(rot_diff) - 1) / 2)
 
             print(
-                f"\rTrack Err P:{p_err:.4f} R:{r_err:.4f} | Target P:{fmt_arr(final_target_pos)}",
+                f"\rTrack Err P:{p_err:.4f} R:{r_err:.4f} | Target P:{fmt_arr(target_7d.array)}",
                 end="",
             )
             timer.reset()

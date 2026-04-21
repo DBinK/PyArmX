@@ -27,15 +27,33 @@ def render_text_img(
 
 
 def overlay_image(background, foreground, x_offset, y_offset):
-    fg = np.array(foreground)  # 将 PIL 图像转换为 NumPy 数组
+    fg = np.array(foreground)
     fh, fw = fg.shape[:2]
     bg = background.copy()
-    bg[y_offset : y_offset + fh, x_offset : x_offset + fw] = fg
+    
+    h, w = bg.shape[:2]
+    
+    # 计算背景上的有效区域
+    x_start = max(0, x_offset)
+    y_start = max(0, y_offset)
+    x_end = min(w, x_offset + fw)
+    y_end = min(h, y_offset + fh)
+    
+    # 计算前景图像对应的裁剪区域
+    fg_x_start = max(0, -x_offset)
+    fg_y_start = max(0, -y_offset)
+    fg_x_end = fg_x_start + (x_end - x_start)
+    fg_y_end = fg_y_start + (y_end - y_start)
+    
+    # 只有在有有效重叠区域时才进行赋值
+    if x_end > x_start and y_end > y_start:
+        bg[y_start:y_end, x_start:x_end] = fg[fg_y_start:fg_y_end, fg_x_start:fg_x_end]
+    
     return bg
 
 
 def draw_bbox(
-    image_path: str,
+    img: np.ndarray,
     data: dict,
     prompt: str | None = None,
     output_path: str | None = None,
@@ -50,15 +68,15 @@ def draw_bbox(
         output_path (str | None): 输出图片路径，如果为None则不保存
         normalized_range (float | None): 如果传入，则表示输入坐标是归一化的
     """
-    img = cv2.imread(image_path)
+    # img = cv2.imread(image_path)
 
-    if img is None:
-        raise ValueError(f"无法读取图片: {image_path}")
+    # if img is None:
+    #     raise ValueError(f"无法读取图片: {image_path}")
 
     h, w = img.shape[:2]
 
     # 添加半透明遮罩
-    mask_percentage = 20
+    mask_percentage = 25
     overlay = img.copy()
     mask_width = int(w * mask_percentage / 100)  # 计算遮罩宽度
     cv2.rectangle(overlay, (0, 0), (mask_width, h), (0, 0, 0), -1)
@@ -70,30 +88,31 @@ def draw_bbox(
     task = data.get("task")
 
     # 中文任务和 say 用贴图方式
+    render_font_size = 28
     if prompt is not None:
         text_img = render_text_img(
-            f"prompt: {prompt}", font_size=40, color=(255, 255, 0)
+            f"prompt: {prompt}", font_size=render_font_size, color=(255, 255, 0)
         )
-        img = overlay_image(img, text_img, 10, h - 160)
+        img = overlay_image(img, text_img, 10, h - render_font_size*3-30)
     if say:
-        text_img = render_text_img(f"say: {say}", font_size=40, color=(255, 255, 255))
-        img = overlay_image(img, text_img, 10, h - 110)
+        text_img = render_text_img(f"say: {say}", font_size=render_font_size, color=(255, 255, 255))
+        img = overlay_image(img, text_img, 10, h - render_font_size*2-20)
     if task:
-        text_img = render_text_img(f"task: {task}", font_size=40, color=(255, 255, 255))
-        img = overlay_image(img, text_img, 10, h - 60)
+        text_img = render_text_img(f"task: {task}", font_size=render_font_size, color=(255, 255, 255))
+        img = overlay_image(img, text_img, 10, h - render_font_size*1-10)
 
     # 显示任务描述（如果存在）
     if acts:
         # 设置字体和大小
         font = cv2.FONT_HERSHEY_SIMPLEX
-        font_scale = 1.0
+        font_scale = 0.80
         thickness = 2
 
         # 计算所有动作文本的尺寸
         act_strings = [
             f"{act[0]}({act[1]})" if len(act) > 1 else act[0] for act in acts
         ]
-        line_height = 40  # 每行的高度
+        line_height = 30  # 每行的高度
         start_y = 30  # 起始Y位置
 
         # 绘制每个动作
@@ -164,41 +183,45 @@ def draw_bbox(
 
 
 if __name__ == "__main__":
-    img_path = r"img\transport_nl\WIN_20260419_22_28_59_Pro.jpg" 
+    img_path = r"img\vlm\img_cv2.jpg" 
+    img_cv2 = cv2.imread(img_path)
 
     result_json_fix = """
-
 {
-  "say": "目标物体为黄色玩偶和胶带卷，正在执行放置任务",
-  "task": "移动到黄色玩偶处并抓取, 移动到白色胶带处并释放",
+  "say": "画面中有五个方块，正在将它们逐一放到胶带上",
+  "task": "依次移动到黑色、红色和黄色方块处进行抓取，然后移动到胶带上方释放",
   "acts": [
-    ["move_to", "nailong"],
-    ["grip", "nailong"],
+    ["move_to", "black_block"],
+    ["grip", "black_block"],
+    ["move_to", "tape"],
+    ["release"],
+    ["move_to", "red_block_1"],
+    ["grip", "red_block_1"],
+    ["move_to", "tape"],
+    ["release"],
+    ["move_to", "red_block_2"],
+    ["grip", "red_block_2"],
+    ["move_to", "tape"],
+    ["release"],
+    ["move_to", "yellow_block_1"],
+    ["grip", "yellow_block_1"],
+    ["move_to", "tape"],
+    ["release"],
+    ["move_to", "yellow_block_2"],
+    ["grip", "yellow_block_2"],
     ["move_to", "tape"],
     ["release"]
   ],
   "objs": {
-    "nailong": [463, 490, 671, 825],
-    "tape": [565, 221, 707, 458]
+    "black_block": [610, 193, 652, 253],
+    "red_block_1": [728, 168, 770, 240],
+    "red_block_2": [675, 324, 724, 390],
+    "yellow_block_1": [599, 490, 646, 561],
+    "yellow_block_2": [782, 333, 837, 413],
+    "tape": [715, 460, 879, 723]
   }
 }
-    """
 
-    result_json_fix = """
-    {
-    "say": "目标物体为黄色方块和胶带，正在拾取并放置",
-    "task": "移动到黄色方块处并抓取，然后移动到胶带处并释放",
-    "acts": [
-        ["move_to", "yellow_block"],
-        ["grip"],
-        ["move_to", "tape"],
-        ["release"]
-    ],
-    "objs": {
-        "yellow_block": [765, 384, 862, 509],
-        "tape": [565, 219, 711, 458]
-    }
-    }
     """
 
     prompt = "把奶龙放到白色托盘里"
@@ -208,7 +231,7 @@ if __name__ == "__main__":
     # img = draw_bbox(img_path, result_list)
     # cv2.imshow("YOLO", img)
 
-    img = draw_bbox(img_path, result_list, prompt, None, 1000.0)
+    img = draw_bbox(img_cv2, result_list, prompt, None, 1000.0) # type: ignore
     cv2.namedWindow("YOLO_NORM", cv2.WINDOW_NORMAL)
     cv2.imshow("YOLO_NORM", img)
     cv2.waitKey(0)

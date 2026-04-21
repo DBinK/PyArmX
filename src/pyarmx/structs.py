@@ -87,7 +87,7 @@ class Pose:
 
     def get_euler(self, seq: str = 'xyz', degrees: bool = False) -> np.ndarray:
         """提供更灵活的欧拉角获取方式"""
-        return self.R.as_euler(seq, degrees=degrees)
+        return self.R.as_euler(seq, degrees=degrees) # type: ignore
 
     # ==========================================
     # 3. 核心数学运算 (级联与求逆)
@@ -108,6 +108,26 @@ class Pose:
             t=-r_inv.apply(self.t),
             R=r_inv
         )
+    
+
+    def pos_dist(self, other: "Pose") -> float:
+        """计算与另一个位姿的位置欧氏距离"""
+        if not isinstance(other, Pose):
+            raise TypeError("pos_dist 只能与另一个 Pose 对象进行比较")
+        return float(np.linalg.norm(self.t - other.t))
+
+    def quat_dist(self, other: "Pose") -> float:
+        """
+        计算与另一个位姿的姿态误差。
+        使用公式: 1.0 - |dot(q1, q2)|，结果范围 [0, 1]。
+        值越接近 0 表示姿态越一致。
+        """
+        if not isinstance(other, Pose):
+            raise TypeError("quat_dist 只能与另一个 Pose 对象进行比较")
+        # 确保四元数已归一化（Rotation 对象内部通常已处理，但 dot 前再次确认是个好习惯）
+        q1 = self.R.as_quat()
+        q2 = other.R.as_quat()
+        return float(1.0 - np.abs(np.dot(q1, q2)))
 
     # ==========================================
     # 4. 逆向工厂方法 (全场景覆盖)

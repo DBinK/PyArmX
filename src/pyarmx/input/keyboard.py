@@ -6,7 +6,7 @@ from scipy.spatial.transform import Rotation as R
 
 class PlaybackInput:
     def __init__(self):
-        self.pause = False
+        self.pause = True
         self._key_states = {}
     
     def _check_key_with_debounce(self, key_name):
