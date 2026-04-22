@@ -1,19 +1,21 @@
 import numpy as np
 
-from pathlib import Path
-
 from pyarmx.input.keyboard import PlaybackInput
 from pyarmx.input.zmq_sub import PoseReceiver
-from pyarmx.sim_facade import ArmSimFacade
+
 from pyarmx.real_facade import ArmRealFacade
+from pyarmx.sim_facade import ArmSimFacade
+
 from pyarmx.structs import Pose
-from pyarmx.utils.loops import Rate, Timer
+
 from pyarmx.utils.log import logger
+from pyarmx.utils.loops import Rate, Timer
 
 if __name__ == "__main__":
 
     # 初始化真实机械臂
-    real = ArmRealFacade(mock=True)
+    # real = ArmRealFacade(mock=True)  # 仅仿真测试
+    real = ArmRealFacade(mock=False)  
 
     # 初始化仿真机械臂
     model_path= "xml/L801/scene.xml"
@@ -24,8 +26,8 @@ if __name__ == "__main__":
     playback = PlaybackInput()
     
     # 初始化目标位姿
-    init_pos = [0.008, 0.072, 0.086]
-    init_quat = [0.006, -0.005, -0.022, 1.000]
+    init_pos  = [0.008, 0.072, 0.086]           # 正前方可达位置 
+    init_quat = [0.006, -0.005, -0.022, 1.000]  # 方向向下
     target_7d = Pose.from_pos_quat(init_pos, init_quat)
     current_7d = Pose.from_pos_quat(init_pos, init_quat)
     

@@ -60,7 +60,7 @@ class TagLocator:
 
         self.scale_factor = 1/40  # 意为将40mm一格转为1mm一格
         self.tx = 0.0
-        self.ty = 140  # 把桌面坐标原点向 Y 轴移动 140 mm
+        self.ty = 130  # 把桌面坐标原点向 Y 轴移动 140 mm
 
         self.H_desk2pix: np.ndarray | None = None
         self.H_pix2desk: np.ndarray | None = None
