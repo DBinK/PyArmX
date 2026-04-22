@@ -13,7 +13,7 @@ from pyarmx.utils.log import logger
 if __name__ == "__main__":
 
     # 初始化真实机械臂
-    # real = ArmRealFacade()
+    real = ArmRealFacade(mock=True)
 
     # 初始化仿真机械臂
     model_path= "xml/L801/scene.xml"
@@ -43,7 +43,7 @@ if __name__ == "__main__":
             sim.set_ee_pose(target_7d.pos, target_7d.quat)
             sim.step() 
 
-            # real.set_q_current(sim.q_current)  # 使用仿真中的关节角控制真实机械臂
+            real.set_q_current(sim.q_current)  # 使用仿真中的关节角控制真实机械臂
 
             # # 监控日志
             if timer.done:
