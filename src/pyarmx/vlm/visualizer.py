@@ -68,19 +68,7 @@ def draw_bbox(
         output_path (str | None): 输出图片路径，如果为None则不保存
         normalized_range (float | None): 如果传入，则表示输入坐标是归一化的
     """
-    # img = cv2.imread(image_path)
-
-    # if img is None:
-    #     raise ValueError(f"无法读取图片: {image_path}")
-
     h, w = img.shape[:2]
-
-    # 添加半透明遮罩
-    mask_percentage = 25
-    overlay = img.copy()
-    mask_width = int(w * mask_percentage / 100)  # 计算遮罩宽度
-    cv2.rectangle(overlay, (0, 0), (mask_width, h), (0, 0, 0), -1)
-    img = cv2.addWeighted(overlay, 0.5, img, 0.5, 0)
 
     objs = data.get("objs", {})
     acts = data.get("acts")
@@ -102,7 +90,14 @@ def draw_bbox(
         img = overlay_image(img, text_img, 10, h - render_font_size*1-10)
 
     # 显示任务描述（如果存在）
-    if acts:
+    if acts:    
+        # 添加半透明遮罩
+        mask_percentage = 25
+        overlay = img.copy()
+        mask_width = int(w * mask_percentage / 100)  # 计算遮罩宽度
+        cv2.rectangle(overlay, (0, 0), (mask_width, h), (0, 0, 0), -1)
+        img = cv2.addWeighted(overlay, 0.5, img, 0.5, 0)
+
         # 设置字体和大小
         font = cv2.FONT_HERSHEY_SIMPLEX
         font_scale = 0.80
@@ -150,6 +145,7 @@ def draw_bbox(
 
     # 绘制边界框和标签
     for name, box in objs.items():
+        # print(box)
         x1, y1, x2, y2 = box
         if normalized_range:
             x1 = int(x1 * w / normalized_range)

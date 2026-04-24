@@ -9,6 +9,12 @@ class Point2D(NamedTuple):
     x: float
     y: float
 
+class TagResult(NamedTuple):
+    """Tag检测结果"""
+    success: bool
+    H_desk2pix: np.ndarray | None
+    H_pix2desk: np.ndarray | None
+    detections: list[Detection]
 
 class HomographyFilter:
     """单应性矩阵滤波器：通过对角点指数移动平均滤波实现平滑"""
@@ -65,10 +71,10 @@ class TagLocator:
         self.H_desk2pix: np.ndarray | None = None
         self.H_pix2desk: np.ndarray | None = None
 
-    def locate_target(self, img: np.ndarray, target_id: int) -> tuple[np.ndarray | None, np.ndarray | None, list[Detection]]:
+    def locate_target(self, img: np.ndarray, target_id: int) -> TagResult:
         """
         输入原始图像，寻找指定 ID 并计算双向转换矩阵
-        返回: (H_desk2pix, H_pix2desk, 过滤后的所有 tags)
+        返回: TagResult 包含成功标志、变换矩阵和检测结果
         """
         img_pre = self._pre_process(img)
         detections = self.detector.detect(img_pre)
@@ -76,22 +82,25 @@ class TagLocator:
         
         target = next((d for d in valid_detections if d.tag_id == target_id), None)
         
-        if target:
-            H_raw = self.hmf.update(target)
+        if not target:
+            return TagResult(False, None, None, valid_detections)
             
-            # 内部调用齐次矩阵运算进行缩放和平移 (40mm -> 1mm)
-            self.H_desk2pix = self._scale_homo(H_raw, self.scale_factor)
-            self.H_desk2pix = self._translate_homo(self.H_desk2pix, self.tx, self.ty)
+        H_raw = self.hmf.update(target)
+        
+        # 内部调用齐次矩阵运算进行缩放和平移 (40mm -> 1mm)
+        H_desk2pix = self._scale_homo(H_raw, self.scale_factor)
+        H_desk2pix = self._translate_homo(H_desk2pix, self.tx, self.ty)
+        
+        try:
+            H_pix2desk = np.linalg.inv(H_desk2pix)
+        except np.linalg.LinAlgError:
+            return TagResult(False, None, None, valid_detections)
             
-            try:
-                self.H_pix2desk = np.linalg.inv(self.H_desk2pix)
-            except np.linalg.LinAlgError:
-                self.H_pix2desk = None
-                return self.H_desk2pix, None, valid_detections
-                
-            return self.H_desk2pix, self.H_pix2desk, valid_detections
-            
-        return self.H_desk2pix, self.H_pix2desk, valid_detections
+        # 更新实例变量供其他方法使用
+        self.H_desk2pix = H_desk2pix
+        self.H_pix2desk = H_pix2desk
+        
+        return TagResult(True, H_desk2pix, H_pix2desk, valid_detections)
     
     
     def desk_to_pixel(self, point: Point2D) -> Point2D | None:
@@ -203,7 +212,7 @@ class TagVisualizer:
         return img_draw
 
     @staticmethod
-    def draw_grid(img: np.ndarray, homography: np.ndarray, step: int = 1, range_limit: int = 500) -> np.ndarray:
+    def draw_grid(img: np.ndarray, homography: np.ndarray, step: int = 20, range_limit: int = 500) -> np.ndarray:
         """绘制网格
         Args:
             img (np.ndarray): 输入图像
@@ -227,3 +236,20 @@ class TagVisualizer:
                     if x % 100 == 0 and y % 100 == 0:
                         cv2.putText(img_draw, f"{x},{y}", (px + 3, py - 3), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (0, 200, 255), 1)
         return img_draw
+
+    
+    def draw_tag_result(self, img: np.ndarray, tag_ret: TagResult) -> np.ndarray:
+        """绘制识别结果"""
+        
+        if not tag_ret.success:
+            return img
+        
+        assert tag_ret.H_desk2pix is not None, "Success is True but H_desk2pix is None"
+        
+        img_draw = img
+
+        img_draw = self.draw_grid(img_draw, tag_ret.H_desk2pix)
+        img_draw = self.draw_tags(img_draw, tag_ret.detections)
+
+        return img_draw
+        

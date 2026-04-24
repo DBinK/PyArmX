@@ -8,8 +8,10 @@ from pyarmx.cv.tags import (
     TagVisualizer,
 )
 
+
 if __name__ == "__main__":
     
+    locator = TagLocator()
     locator = TagLocator()
     vis = TagVisualizer()
 
@@ -17,10 +19,10 @@ if __name__ == "__main__":
     # cap = cv2.VideoCapture(1,  cv2.CAP_DSHOW)
 
     while True:
-        # ret = True
-        # frame = cv2.imread(r"img\pick\WIN_20260420_23_49_29_Pro.jpg")
+        ret = True
+        frame = cv2.imread(r"img\pick\WIN_20260420_23_49_29_Pro.jpg")
 
-        ret, frame = cam.cap.read()
+        # ret, frame = cam.cap.read()
         # ret, frame = cap.read()
 
         if ret and frame is not None:

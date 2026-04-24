@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 @dataclass
 class CamCfg:
-    cam_id: int = 0
+    cam_id: int | str = 0  # 可以用视频文件路径
     width: int = 1280
     height: int = 720
     fps: int = 30
@@ -20,7 +20,7 @@ class CamCfg:
     wb_temperature: int | None = None
     contrast: int | None = None
 
-    api: int | None = cv2.CAP_DSHOW  
+    backend: int | None = None  # Windows 推荐用 cv2.CAP_DSHOW  
 
 
 class UVCamera:
@@ -30,10 +30,10 @@ class UVCamera:
         self.cap = self._init_camera()
 
     def _init_camera(self):
-        if self.cfg.api is None:
+        if self.cfg.backend is None:
             cap = cv2.VideoCapture(self.cfg.cam_id)
         else:
-            cap = cv2.VideoCapture(self.cfg.cam_id, self.cfg.api)
+            cap = cv2.VideoCapture(self.cfg.cam_id, self.cfg.backend)
 
         # FOURCC 单独处理
         cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter.fourcc(*self.cfg.fourcc))
@@ -62,8 +62,18 @@ class UVCamera:
         return cap
 
     def read(self):
+        """读取一帧"""
         return self.cap.read()
     
+    def read_video(self):
+        """读取一帧（视频文件）"""
+        ret, frame = self.cap.read()
+        # 如果是视频文件且读取失败（通常意味着到达文件末尾），则重置并重新读取
+        if not ret:
+            self.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+            ret, frame = self.cap.read()
+        return ret, frame
+
     def shot(self, path):
         ret, frame = self.read()
         if ret:

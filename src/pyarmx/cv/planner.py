@@ -4,7 +4,7 @@ import numpy as np
 from pyarmx.vlm.chatbot import ChatBot
 from pyarmx.vlm.config import ModelID, get_config
 
-from pyarmx.vlm.prompts import DM_PROMPT
+from pyarmx.vlm.prompts import DM_PROMPT, IMG_TO_BBOX_NORM
 from pyarmx.vlm.visualizer import draw_bbox
 
 from pyarmx.utils.log import logger
@@ -15,7 +15,7 @@ class VLMPlanner:
     
     def __init__(
         self, 
-        model_id: ModelID = ModelID.LMS
+        model_id: ModelID = ModelID.ALIYUN
     ):
         """
         初始化 VLM 检测器
@@ -25,7 +25,8 @@ class VLMPlanner:
             auto_init: 是否自动初始化资源
         """
         config = get_config(model_id)
-        config.system_prompt = DM_PROMPT
+        # config.system_prompt = DM_PROMPT
+        config.system_prompt = IMG_TO_BBOX_NORM
 
         self._bot = ChatBot(config)
 
@@ -78,10 +79,16 @@ if __name__ == "__main__":
     # cmd = "把奶龙放到胶带上"
     # cmd = "把方块放到胶带上"
 
-    img_path = r"img\classify\WIN_20260419_23_57_58_Pro.jpg"   # 
-    cmd = "把所有方块放到胶带上"
+    # img_path = r"img\classify\WIN_20260419_23_57_58_Pro.jpg"   # 
+    # cmd = "把所有方块放到胶带上"
 
-    planner = VLMPlanner()
+    # img_path = r"img\rm\b4.jpeg"  
+    img_path = r"img\rm\b5.jpeg"  
+    # img_path = r"img\rm\mut.jpeg"  
+    cmd = "找到画面中的机甲大师战车, 要区分颜色和兵种"
+
+    planner = VLMPlanner(ModelID.ALIYUN)
+    # planner = VLMPlanner(ModelID.LMS)
 
     img_cv2 = cv2.imread(img_path)
     
