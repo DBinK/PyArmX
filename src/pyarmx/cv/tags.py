@@ -65,8 +65,9 @@ class TagLocator:
         self.hmf = HomographyFilter(alpha=filter_alpha)
 
         self.scale_factor = 1/40  # 意为将40mm一格转为1mm一格
+        
         self.tx = 0.0
-        self.ty = 130  # 把桌面坐标原点向 Y 轴移动 140 mm
+        self.ty = 136  # 把桌面坐标原点向 Y 轴移动 140 mm
 
         self.H_desk2pix: np.ndarray | None = None
         self.H_pix2desk: np.ndarray | None = None
@@ -213,32 +214,104 @@ class TagVisualizer:
 
     @staticmethod
     def draw_grid(img: np.ndarray, homography: np.ndarray, step: int = 20, range_limit: int = 500) -> np.ndarray:
-        """绘制网格
-        Args:
-            img (np.ndarray): 输入图像
-            homography (np.ndarray): 投影矩阵
-            step (int, optional): 网格步长. Defaults to 1.
-            range_limit (int, optional): 网格范围. Defaults to 500.
-        """
+        """基于纯透视变换的双端点极致优化版"""
         img_draw = img.copy()
         h, w = img.shape[:2]
-        for x in range(-range_limit, range_limit + 1, step):
-            for y in range(-range_limit, range_limit + 1, step):
-                p_tag = np.array([x, y, 1.0], dtype=np.float32)
-                p_img = homography @ p_tag
-                if p_img[2] == 0:
-                    continue
-                p_img = p_img / p_img[2]
-                px, py = int(p_img[0]), int(p_img[1])
 
+        # 生成刻度序列
+        ticks = np.arange(-range_limit, range_limit + 1, step)
+        
+        # 构建所有网格线的起点和终点坐标 (N, 2)
+        # 垂直线: x 不变, y 从 -limit 到 +limit
+        v_starts = np.column_stack((ticks, np.full_like(ticks, -range_limit)))
+        v_ends = np.column_stack((ticks, np.full_like(ticks, range_limit)))
+        
+        # 水平线: y 不变, x 从 -limit 到 +limit
+        h_starts = np.column_stack((np.full_like(ticks, -range_limit), ticks))
+        h_ends = np.column_stack((np.full_like(ticks, range_limit), ticks))
+
+        # 合并所有起点和终点
+        all_starts = np.vstack([v_starts, h_starts])
+        all_ends = np.vstack([v_ends, h_ends])
+        
+        # 为了只做一次矩阵乘法，将起点和终点拼接到一起 (2N, 2)
+        all_points = np.vstack([all_starts, all_ends])
+
+        # 转换为齐次坐标并执行一次性批量变换 (3, 2N)
+        pts_h = np.vstack([all_points.T, np.ones(len(all_points))])
+        projected = homography @ pts_h
+
+        # 透视除法，并加上微小 epsilon 防止除以 0
+        z = projected[2, :]
+        z[z == 0] = 1e-6
+        pts_img = (projected[:2, :] / z).T.astype(np.int32)
+
+        # 从大矩阵中重新分离出 起点 和 终点
+        num_lines = len(all_starts)
+        proj_starts = pts_img[:num_lines]
+        proj_ends = pts_img[num_lines:]
+
+        # OpenCV 的 cv2.line 底层有高效的裁剪算法，直接遍历绘制即可
+        for pt1, pt2 in zip(proj_starts, proj_ends):
+            cv2.line(img_draw, tuple(pt1), tuple(pt2), (100, 100, 100), 1)
+
+        # 绘制文字标签 (仅限关键点)
+        label_ticks = np.arange(-range_limit, range_limit + 1, 100)
+        if len(label_ticks) > 0:
+            grid_x, grid_y = np.meshgrid(label_ticks, label_ticks)
+            labels_pts = np.vstack([grid_x.ravel(), grid_y.ravel(), np.ones(grid_x.size)])
+            
+            l_proj = homography @ labels_pts
+            lz = l_proj[2, :]
+            lz[lz == 0] = 1e-6
+            l_img = (l_proj[:2, :] / lz).T.astype(np.int32)
+
+            for i, (px, py) in enumerate(l_img):
                 if 0 <= px < w and 0 <= py < h:
-                    cv2.circle(img_draw, (px, py), 2, (0, 255, 255), -1)
-                    if x % 100 == 0 and y % 100 == 0:
-                        cv2.putText(img_draw, f"{x},{y}", (px + 3, py - 3), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (0, 200, 255), 1)
+                    lx, ly = grid_x.ravel()[i], grid_y.ravel()[i]
+                    cv2.putText(img_draw, f"{lx},{ly}", (px + 2, py - 2), 
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.3, (0, 255, 255), 1)
+
+
+        return img_draw
+    
+
+    @staticmethod
+    def draw_axes_2d(img: np.ndarray, homography: np.ndarray, length: float = 200.0) -> np.ndarray:
+        """绘制桌面坐标系 XY 轴 (X红 Y绿)"""
+
+        img_draw = img.copy()
+
+        def proj(pt: tuple[float, float]) -> np.ndarray:
+            """桌面坐标 -> 像素坐标"""
+            p = np.array([pt[0], pt[1], 1.0], dtype=np.float64)
+            p = homography @ p
+            p /= (p[2] + 1e-6)
+            return p[:2]
+
+        # 原点 + 两个轴端点
+        origin = proj((0, 0))
+        x_end = proj((length, 0))
+        y_end = proj((0, length))
+
+        o = tuple(origin.astype(int))
+        x = tuple(x_end.astype(int))
+        y = tuple(y_end.astype(int))
+
+        # 画轴
+        cv2.line(img_draw, o, x, (0, 0, 255), 3)  # X
+        cv2.line(img_draw, o, y, (0, 255, 0), 3)  # Y
+
+        # 标注
+        cv2.putText(img_draw, "X", (x[0]+5, x[1]+5),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,255), 2)
+        cv2.putText(img_draw, "Y", (y[0]+5, y[1]+5),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 2)
+
         return img_draw
 
-    
-    def draw_tag_result(self, img: np.ndarray, tag_ret: TagResult) -> np.ndarray:
+    @classmethod
+    def draw_tag_result(cls, img: np.ndarray, tag_ret: TagResult) -> np.ndarray:
         """绘制识别结果"""
         
         if not tag_ret.success:
@@ -248,8 +321,9 @@ class TagVisualizer:
         
         img_draw = img
 
-        img_draw = self.draw_grid(img_draw, tag_ret.H_desk2pix)
-        img_draw = self.draw_tags(img_draw, tag_ret.detections)
+        img_draw = cls.draw_grid(img_draw, tag_ret.H_desk2pix)
+        img_draw = cls.draw_axes_2d(img_draw, tag_ret.H_desk2pix)
+        img_draw = cls.draw_tags(img_draw, tag_ret.detections)
 
         return img_draw
         

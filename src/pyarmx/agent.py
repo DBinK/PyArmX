@@ -33,8 +33,8 @@ while loop.sleep():
     cv2.namedWindow("tag", cv2.WINDOW_NORMAL)
     cv2.imshow("tag", img_tag)
 
-    cv2.namedWindow("raw", cv2.WINDOW_NORMAL)
-    cv2.imshow("raw", img_raw)
+    # cv2.namedWindow("raw", cv2.WINDOW_NORMAL)
+    # cv2.imshow("raw", img_raw)
 
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
