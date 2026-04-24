@@ -81,7 +81,7 @@ class UVCamera:
             return True
         else:
             return False
-
+        
     def release(self):
         self.cap.release()
 

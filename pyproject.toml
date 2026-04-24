@@ -20,8 +20,10 @@ dependencies = [
     "pupil-apriltags>=1.0.4.post11",
     "pydamiao",
     "pygame>=2.6.1",
+    "pynng>=0.9.0",
     "pyzmq>=27.1.0",
     "rich>=14.3.3",
+    "rose",
     "ruckig==0.12.2",
     "scipy>=1.15.3",
     "scipy-stubs>=1.15.3.0",
@@ -39,6 +41,7 @@ stubPath = "./stubs"
 
 [tool.uv.sources]
 pydamiao = { path = "../pydamiao" }
+rose = { path = "../rose" }
 
 [dependency-groups]
 dev = [

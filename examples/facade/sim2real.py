@@ -14,8 +14,8 @@ from pyarmx.utils.loops import Rate, Timer
 if __name__ == "__main__":
 
     # 初始化真实机械臂
-    # real = ArmRealFacade(mock=True)  # 仅仿真测试
-    real = ArmRealFacade(mock=False)  
+    real = ArmRealFacade(mock=True)  # 仅仿真测试
+    # real = ArmRealFacade(mock=False)  
 
     # 初始化仿真机械臂
     model_path= "xml/L801/scene.xml"

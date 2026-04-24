@@ -12,7 +12,6 @@ from pyarmx.cv.tags import (
 if __name__ == "__main__":
     
     locator = TagLocator()
-    locator = TagLocator()
     vis = TagVisualizer()
 
     cam = UVCamera(CamCfg(cam_id=1))
@@ -25,21 +24,20 @@ if __name__ == "__main__":
         # ret, frame = cam.cap.read()
         # ret, frame = cap.read()
 
-        if ret and frame is not None:
-            H_desk2pix, H_pix2desk, detections = locator.locate_target(frame, 14)
+        ret, img_raw = cam.read_video()
+        if not ret:
+            continue
 
-            if H_desk2pix is not None:
-                frame_rets = vis.draw_tags(frame, detections)
-                frame_rets = vis.draw_grid(frame_rets, H_desk2pix, 20)
-            else:
-                frame_rets = frame
+        tag_ret  = locator.locate_target(img_raw, 14)
+        img_tag = vis.draw_tag_result(img_raw, tag_ret)
 
-            # pix = locator.desk_to_pixel(Point2D(300, -50))
-            # frame_rets = vis.draw_point(frame_rets, pix, text="nailong") # type: ignore
+        cv2.namedWindow("tag", cv2.WINDOW_NORMAL)
+        cv2.imshow("tag", img_tag)
 
-            cv2.namedWindow("frame_rets", cv2.WINDOW_NORMAL)
-            cv2.imshow("frame_rets", frame_rets)
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
+        # cv2.namedWindow("raw", cv2.WINDOW_NORMAL)
+        # cv2.imshow("raw", img_raw)
+
+        if cv2.waitKey(1) & 0xFF == ord("q"):
+            break
         else:
             break

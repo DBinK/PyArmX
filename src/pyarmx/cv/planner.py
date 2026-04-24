@@ -30,6 +30,7 @@ class VLMPlanner:
 
         self._bot = ChatBot(config)
 
+
     def analyze(self, img_cv2: np.ndarray, cmd: str) -> dict | None:
         """
         使用 VLM 根据指令规划动作或分析图像
@@ -41,10 +42,23 @@ class VLMPlanner:
         Returns:
             结果字典，失败时返回 None
         """
+        if img_cv2 is None or img_cv2.size == 0:
+            logger.error("输入图像无效")
+            return None
 
-        img_b64 = self._bot.encode_img_cv2(img_cv2)
+        try:
+            img_b64 = self._bot.encode_img_cv2(img_cv2)
+            logger.debug(f"图像编码成功，base64长度: {len(img_b64)}")
+        except Exception as e:
+            logger.error(f"图像编码失败: {str(e)}")
+            return None
 
-        ret_str = self._bot.chat(cmd, img_b64)
+        try:
+            ret_str = self._bot.chat(cmd, img_b64)
+        except Exception as e:
+            logger.error(f"VLM分析失败: {str(e)}")
+            return None
+            
         if not ret_str:
             logger.error("模型响应为空")
             return None
@@ -55,6 +69,7 @@ class VLMPlanner:
             return None
 
         return ret_dict
+
 
     def draw(self, img_cv2: np.ndarray, ret_dict: dict):
         return draw_bbox(img_cv2, ret_dict)
