@@ -37,6 +37,7 @@ if __name__ == "__main__":
     playback = PlaybackInput()
     
     # 初始化目标位姿
+    # init_pos  = [-0.0100, 0.0200, 0.086]           # 正前方可达位置 
     init_pos  = [0.008, 0.072, 0.086]           # 正前方可达位置 
     init_quat = [0.006, -0.005, -0.022, 1.000]  # 方向向下
     target_7d = Pose.from_pos_quat(init_pos, init_quat)
@@ -59,7 +60,7 @@ if __name__ == "__main__":
                     obj_name = act[1]
                     if obj_name in objs:
                         coords = objs[obj_name]
-                        coords_3d = [coords[1]/1000, coords[0]/1000, init_pos[2]]
+                        coords_3d = [-coords[1]/1000, coords[0]/1000, init_pos[2]]
                         task = ["move_to", coords_3d, False]
                         tasks.append(task)
                 else:
@@ -95,14 +96,14 @@ if __name__ == "__main__":
                     pass  # 处理抓取动作
                     working_task[-1] = True  # 标记当前任务为完成
                     working_task = None  # 清空当前工作任务
-                    time.sleep(3)
+                    time.sleep(5)
 
                 elif task_type == "release":
                     print("正在释放")
                     pass  # 处理抓取动作
                     working_task[-1] = True  # 标记当前任务为完成
                     working_task = None  # 清空当前工作任务
-                    time.sleep(3)
+                    time.sleep(5)
                     
                 else:
                     print("动作解析失败")
