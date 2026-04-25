@@ -25,8 +25,8 @@ class VLMPlanner:
             auto_init: 是否自动初始化资源
         """
         config = get_config(model_id)
-        # config.system_prompt = DM_PROMPT
-        config.system_prompt = IMG_TO_BBOX_NORM
+        config.system_prompt = DM_PROMPT
+        # config.system_prompt = IMG_TO_BBOX_NORM
 
         self._bot = ChatBot(config)
 
@@ -80,6 +80,20 @@ class VLMPlanner:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
+    def calculate_bbox_center(self, bbox: list[float] | tuple[float, ...]) -> tuple[float, float]:
+        """
+        计算边界框的中点坐标
+        
+        Args:
+            bbox: 边界框格式为 [xmin, ymin, xmax, ymax] 或 (xmin, ymin, xmax, ymax)
+            
+        Returns:
+            tuple[float, float]: 中点坐标 (center_x, center_y)
+        """
+        xmin, ymin, xmax, ymax = bbox
+        center_x = (xmin + xmax) / 2
+        center_y = (ymin + ymax) / 2
+        return (center_x, center_y)
 
 if __name__ == "__main__":
 
