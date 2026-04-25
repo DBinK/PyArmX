@@ -25,8 +25,8 @@ sub = Subscriber(ret_addr, "ret", RetMsg)
 if __name__ == "__main__":
 
     # 初始化真实机械臂
-    real = ArmRealFacade(mock=True)  # 仅仿真测试
-    # real = ArmRealFacade(mock=False)  
+    # real = ArmRealFacade(mock=True)  # 仅仿真测试
+    real = ArmRealFacade(mock=False)  
 
     # 初始化仿真机械臂
     model_path= "xml/L801/scene.xml"
@@ -59,7 +59,7 @@ if __name__ == "__main__":
                     obj_name = act[1]
                     if obj_name in objs:
                         coords = objs[obj_name]
-                        coords_3d = [coords[0]/10000, coords[1]/10000, init_pos[2]]
+                        coords_3d = [coords[1]/1000, coords[0]/1000, init_pos[2]]
                         task = ["move_to", coords_3d, False]
                         tasks.append(task)
                 else:

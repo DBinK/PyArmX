@@ -12,9 +12,9 @@ from rose.message import ChatMsg, RetMsg
 from pyarmx.utils.loops import Rate
 
 cam = UVCamera(CamCfg(
-    cam_id=r"img\env\nl.mp4",
-    # cam_id=1,
-    # backend=cv2.CAP_DSHOW,  
+    # cam_id=r"img\env\nl.mp4",
+    cam_id=1,
+    backend=cv2.CAP_DSHOW,  
 ))
 
 tag = TagLocator(0.1)
@@ -34,7 +34,7 @@ pub = Publisher(ret_addr)
 
 # 相机主循环
 while loop.sleep():
-    print(f"\r{loop.tick.delta=:.3f}, {loop.tick.on_time}  ", end="")
+    print(f"\r{loop.tick.delta=:.6f}, {loop.tick.on_time}  ", end="")
 
     ret, img_raw = cam.read_video()
     if not ret:
