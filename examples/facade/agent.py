@@ -59,12 +59,13 @@ while loop.sleep():
                 center = plan.calculate_bbox_center(v)
                 ret_dict_desk["objs"][k] = tag.desk_to_pixel(Point2D(center[0], center[1]))
 
+                # img_tag = tag_vis.draw_point(img_tag, Point2D(center[0], center[1]), text=k)
+
             ret_dict_desk["acts"] = ret_dict_pix.get("acts", {})
 
             rprint(ret_dict_desk)
 
             pub.publish("ret", RetMsg(**ret_dict_desk))
-            # pub.publish("ret", RetMsg(**ret_dict_desk))
 
 
     cv2.namedWindow("tag", cv2.WINDOW_NORMAL)
