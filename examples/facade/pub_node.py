@@ -14,12 +14,12 @@ def main() -> None:
         try:
             user_input = input("请输入消息内容 (输入 'quit' 退出): ")
             
-            if user_input.lower() == 'quit':
-                rprint("[Pub] 用户退出")
+            if user_input.lower() == 'q':
+                rprint("[用户退出")
                 break            
             
             if user_input.lower() == '':
-                rprint("input is empyt")
+                rprint("输入为空, 请重新输入")
                 continue
 
             if user_input.lower() == 'p':

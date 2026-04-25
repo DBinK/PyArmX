@@ -96,17 +96,17 @@ if __name__ == "__main__":
                 task_type = working_task[0]
                 if task_type == "move_to" and len(working_task) >= 2:
                     target_7d.update(working_task[1], target_7d.quat)
-                    print(f"正在前往{working_task[0]}, pos: {working_task[1]}")
+                    rprint(f"正在执行 {working_task}")
 
                 elif task_type == "grip":
-                    print("正在抓取")
+                    rprint(f"正在执行 {working_task}")
                     pass  # 处理抓取动作
                     working_task[-1] = True  # 标记当前任务为完成
                     working_task = None  # 清空当前工作任务
                     time.sleep(3)
 
                 elif task_type == "release":
-                    print("正在释放")
+                    rprint(f"正在执行 {working_task}")
                     pass  # 处理抓取动作
                     working_task[-1] = True  # 标记当前任务为完成
                     working_task = None  # 清空当前工作任务

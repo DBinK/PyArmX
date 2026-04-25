@@ -66,7 +66,7 @@ while loop.sleep():
             rprint(ret_dict_desk)
 
             pub.publish("ret", RetMsg(**ret_dict_desk))
-
+    
 
     cv2.namedWindow("tag", cv2.WINDOW_NORMAL)
     cv2.imshow("tag", img_tag)
