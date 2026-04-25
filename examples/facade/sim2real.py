@@ -60,7 +60,7 @@ if __name__ == "__main__":
                     obj_name = act[1]
                     if obj_name in objs:
                         coords = objs[obj_name]
-                        coords_3d = [-coords[1]/1000, coords[0]/1000, init_pos[2]]
+                        coords_3d = [coords[1]/1000, -coords[0]/1000, init_pos[2]]
                         task = ["move_to", coords_3d, False]
                         tasks.append(task)
                 else:
