@@ -49,6 +49,10 @@ if __name__ == "__main__":
 
     tasks = []
     working_task = None
+
+    x_offset = 0.05
+    y_offset = -0.11
+
     def unpack_msg(ret: RetMsg, tasks: list):
         # 解析 RetMsg 并装填到 tasks 列表
         if hasattr(ret, 'objs') and hasattr(ret, 'acts'):
@@ -60,7 +64,7 @@ if __name__ == "__main__":
                     obj_name = act[1]
                     if obj_name in objs:
                         coords = objs[obj_name]
-                        coords_3d = [-coords[1]/1000, coords[0]/1000, init_pos[2]]
+                        coords_3d = [-coords[1]/1000+y_offset, coords[0]/1000+x_offset, init_pos[2]]
                         task = ["move_to", coords_3d, False]
                         tasks.append(task)
                 else:
@@ -75,9 +79,10 @@ if __name__ == "__main__":
             ret = sub.recv(False)
             if ret is not None:
                 rprint(ret)
-                text = input()
-                if text != "0":
-                    unpack_msg(ret, tasks)
+                unpack_msg(ret, tasks)
+                # text = input()
+                # if text != "0":
+                #     unpack_msg(ret, tasks)
             
             # 更新输入与目标
             # 更新输入与目标
@@ -98,14 +103,14 @@ if __name__ == "__main__":
                     pass  # 处理抓取动作
                     working_task[-1] = True  # 标记当前任务为完成
                     working_task = None  # 清空当前工作任务
-                    time.sleep(5)
+                    time.sleep(3)
 
                 elif task_type == "release":
                     print("正在释放")
                     pass  # 处理抓取动作
                     working_task[-1] = True  # 标记当前任务为完成
                     working_task = None  # 清空当前工作任务
-                    time.sleep(5)
+                    time.sleep(3)
                     
                 else:
                     print("动作解析失败")
