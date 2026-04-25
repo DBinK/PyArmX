@@ -23,10 +23,10 @@ def main() -> None:
                 continue
 
             if user_input.lower() == ']':
-                user_input = "把红色方块放到胶带里"
+                user_input = "把黑色小方块放到胶带里"
 
             if user_input.lower() == '[':
-                user_input = "[把红色方块放到胶带里]"
+                user_input = "[把黑色小方块放到胶带里]"
             
             msg = ChatMsg(content=user_input, id=counter)
             pub.publish("status", msg)

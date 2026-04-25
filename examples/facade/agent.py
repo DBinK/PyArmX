@@ -20,8 +20,8 @@ cam = UVCamera(CamCfg(
 tag = TagLocator(0.1)
 tag_vis = TagVisualizer()
 
-plan = VLMPlanner(ModelID.LMS)
-# plan = VLMPlanner(ModelID.ALIYUN)
+# plan = VLMPlanner(ModelID.LMS)
+plan = VLMPlanner(ModelID.ALIYUN)
 
 loop = Rate(30)
 
