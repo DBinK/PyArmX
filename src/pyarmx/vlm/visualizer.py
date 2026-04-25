@@ -75,20 +75,6 @@ def draw_bbox(
     say = data.get("say")
     task = data.get("task")
 
-    # 中文任务和 say 用贴图方式
-    render_font_size = 28
-    if prompt is not None:
-        text_img = render_text_img(
-            f"prompt: {prompt}", font_size=render_font_size, color=(255, 255, 0)
-        )
-        img = overlay_image(img, text_img, 10, h - render_font_size*3-30)
-    if say:
-        text_img = render_text_img(f"say: {say}", font_size=render_font_size, color=(255, 255, 255))
-        img = overlay_image(img, text_img, 10, h - render_font_size*2-20)
-    if task:
-        text_img = render_text_img(f"task: {task}", font_size=render_font_size, color=(255, 255, 255))
-        img = overlay_image(img, text_img, 10, h - render_font_size*1-10)
-
     # 显示任务描述（如果存在）
     if acts:    
         # 添加半透明遮罩
@@ -137,6 +123,7 @@ def draw_bbox(
                 )
                 break
 
+
     # 给每个类别随机分配颜色
     colors = {
         name: (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
@@ -170,6 +157,22 @@ def draw_bbox(
         cv2.putText(
             img, name, (x1, y1 - 2), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2
         )
+    
+    
+    # 中文任务和 say 用贴图方式
+    render_font_size = 28
+    if prompt is not None:
+        text_img = render_text_img(
+            f"prompt: {prompt}", font_size=render_font_size, color=(255, 255, 0)
+        )
+        img = overlay_image(img, text_img, 10, h - render_font_size*3-30)
+    if say:
+        text_img = render_text_img(f"say: {say}", font_size=render_font_size, color=(255, 255, 255))
+        img = overlay_image(img, text_img, 10, h - render_font_size*2-20)
+    if task:
+        text_img = render_text_img(f"task: {task}", font_size=render_font_size, color=(255, 255, 255))
+        img = overlay_image(img, text_img, 10, h - render_font_size*1-10)
+
 
     if output_path:
         cv2.imwrite(output_path, img)

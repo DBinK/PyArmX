@@ -22,11 +22,14 @@ def main() -> None:
                 rprint("input is empyt")
                 continue
 
-            if user_input.lower() == ']':
-                user_input = "把黑色小方块放到胶带里"
+            if user_input.lower() == 'p':
+                user_input = "把白色玩偶放到胶带里"
 
             if user_input.lower() == '[':
-                user_input = "[把黑色小方块放到胶带里]"
+                user_input = "把所有黄色方块放到胶带处"
+
+            if user_input.lower() == ']':
+                user_input = "把最大的方块放到胶带里"
             
             msg = ChatMsg(content=user_input, id=counter)
             pub.publish("status", msg)

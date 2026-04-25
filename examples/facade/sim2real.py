@@ -38,7 +38,7 @@ if __name__ == "__main__":
     
     # 初始化目标位姿
     # init_pos  = [0.0100, 0.15000, 0.086]           # 正前方可达位置 
-    init_pos  = [0.008, 0.072, 0.086]           # 正前方可达位置 
+    init_pos  = [-0.008, 0.05, 0.089]           # 正前方可达位置 
     init_quat = [0.006, -0.005, -0.022, 1.000]  # 方向向下
     target_7d = Pose.from_pos_quat(init_pos, init_quat)
     current_7d = Pose.from_pos_quat(init_pos, init_quat)
@@ -50,8 +50,8 @@ if __name__ == "__main__":
     tasks = []
     working_task = None
 
-    x_offset = 0.05
-    y_offset = -0.11
+    x_offset = 0.065
+    y_offset = 0.095
 
     def unpack_msg(ret: RetMsg, tasks: list):
         # 解析 RetMsg 并装填到 tasks 列表
@@ -64,7 +64,7 @@ if __name__ == "__main__":
                     obj_name = act[1]
                     if obj_name in objs:
                         coords = objs[obj_name]
-                        coords_3d = [-coords[1]/1000+y_offset, coords[0]/1000+x_offset, init_pos[2]]
+                        coords_3d = [-(coords[1]/1000+y_offset), coords[0]/1000+x_offset, init_pos[2]]
                         task = ["move_to", coords_3d, False]
                         tasks.append(task)
                 else:

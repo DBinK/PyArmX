@@ -21,7 +21,7 @@ class RuckigPosePlanner:
 
         self.input_param.max_velocity = [500.0, 500.0, 500.0]
         self.input_param.max_acceleration = [500.0, 500.0, 500.0]
-        self.input_param.max_jerk = [5.0, 5.0, 55.0]
+        self.input_param.max_jerk = [5.0, 5.0, 5.0]
         self._current_position = np.zeros(3, dtype=np.float64)
         self._current_velocity = np.zeros(3, dtype=np.float64)
         self._current_acceleration = np.zeros(3, dtype=np.float64)
@@ -183,7 +183,9 @@ class RuckigPosePlanner:
                         
                 except ruckig.RuckigError as e:
                     # 捕获底层 C++ 抛出的错误
-                    print(f"[Error] Ruckig 发生异常: {e}，跳过本次更新")
+                    # print(f"[Error] Ruckig 发生异常: {e}，跳过本次更新")
+                    # print(f"[Error] Ruckig 发生异常，跳过本次更新")
+                    pass
 
                 if success:
                     self._current_position = new_pos
