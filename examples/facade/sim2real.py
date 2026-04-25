@@ -1,4 +1,5 @@
 from queue import Queue
+import time
 
 import numpy as np
 from rich import print as rprint
@@ -92,10 +93,16 @@ if __name__ == "__main__":
                 elif task_type == "grip":
                     print("正在抓取")
                     pass  # 处理抓取动作
+                    working_task[-1] = True  # 标记当前任务为完成
+                    working_task = None  # 清空当前工作任务
+                    time.sleep(3)
 
                 elif task_type == "release":
-                    print("正在抓取")
+                    print("正在释放")
                     pass  # 处理抓取动作
+                    working_task[-1] = True  # 标记当前任务为完成
+                    working_task = None  # 清空当前工作任务
+                    time.sleep(3)
                     
                 else:
                     print("动作解析失败")
@@ -118,17 +125,17 @@ if __name__ == "__main__":
                         working_task[-1] = True  # 标记当前任务为完成
                         working_task = None  # 清空当前工作任务
                
-                elif working_task is not None and working_task[0] == "grip":
-                    # 当前直接完成, 未处理
-                    print(f"{working_task} 完成")
-                    working_task[-1] = True  # 标记当前任务为完成
-                    working_task = None  # 清空当前工作任务
+                # elif working_task is not None and working_task[0] == "grip":
+                #     # 当前直接完成, 未处理
+                #     print(f"{working_task} 完成")
+                #     working_task[-1] = True  # 标记当前任务为完成
+                #     working_task = None  # 清空当前工作任务
                           
-                elif working_task is not None and working_task[0] == "grip":
-                    # 当前直接完成, 未处理
-                    print(f"{working_task} 完成")
-                    working_task[-1] = True  # 标记当前任务为完成
-                    working_task = None  # 清空当前工作任务
+                # elif working_task is not None and working_task[0] == "release":
+                #     # 当前直接完成, 未处理
+                #     print(f"{working_task} 完成")
+                #     working_task[-1] = True  # 标记当前任务为完成
+                #     working_task = None  # 清空当前工作任务
  
 
                 print(f"\r{pos_err=:.6f}, {quat_err=:.6f}", end="release")
