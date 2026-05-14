@@ -2,7 +2,12 @@
 
 PyArmX 是一个面向机械臂控制的 Python 框架，提供仿真与真实硬件的统一抽象接口，支持视觉语言模型（VLM）驱动的智能任务规划。
 
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/25c10e53-bd82-4d67-b323-029ead934265" />
+
+
 ## 项目架构
+
+<img width="1535" height="1024" alt="image12" src="https://github.com/user-attachments/assets/c43d192f-393c-4beb-b4bc-09fd7c9d7d17" />
 
 ```
 pyarmx/
@@ -29,6 +34,8 @@ pyarmx/
 ```
 
 ## 核心功能
+
+<img width="1536" height="1024" alt="image24" src="https://github.com/user-attachments/assets/7d7dd5d7-4ec8-4f16-9ad4-2d15e7df655b" />
 
 ### 1. 双层机械臂抽象
 
