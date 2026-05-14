@@ -8,13 +8,22 @@ authors = [
 ]
 requires-python = ">=3.10"
 dependencies = [
+    "dotenv>=0.9.9",
     "keyboard>=0.13.5",
     "loguru>=0.7.3",
     "looptick>=0.1.4",
+    "msgpack>=1.1.2",
     "mujoco>=3.6.0",
+    "openai>=2.32.0",
+    "opencv-python>=4.13.0.92",
+    "pillow>=12.2.0",
+    "pupil-apriltags>=1.0.4.post11",
     "pydamiao",
     "pygame>=2.6.1",
+    "pynng>=0.9.0",
+    "pyzmq>=27.1.0",
     "rich>=14.3.3",
+    "rose",
     "ruckig==0.12.2",
     "scipy>=1.15.3",
     "scipy-stubs>=1.15.3.0",
@@ -32,10 +41,13 @@ stubPath = "./stubs"
 
 [tool.uv.sources]
 pydamiao = { path = "../pydamiao" }
+rose = { path = "../rose" }
 
 [dependency-groups]
 dev = [
+    "onshape-to-robot>=1.8.2",
     "pybind11-stubgen>=2.5.5",
+    "rerun-sdk>=0.31.3",
 ]
 
 [tool.pixi.workspace]

@@ -1,6 +1,7 @@
 # Project-specific files
 tmp/
 stubs/
+img/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -221,3 +222,4 @@ __marimo__/
 # pixi environments
 .pixi/*
 !.pixi/config.toml
+MUJOCO_LOG.TXT

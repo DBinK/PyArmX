@@ -27,34 +27,40 @@ manager.set_teach_mode()
 
 
 # --- 仿真机械臂 --- #
-MODEL_PATH = "xml/mjcf/scene.xml"
+# MODEL_PATH = "xml/L20/scene.xml"
+MODEL_PATH = "xml/L801/scene.xml"
 
 sim = ArmSimulator(MODEL_PATH)
-sim.launch()
 sim.start()
-
 
 # --- 主循环 --- #
 loop = Rate(hz=100)
 timer = Timer(duration=0.5)
 
-while sim.viewer.is_running() and loop.sleep(): # type: ignore
+i = 0.01
 
-    manager.set_teach_mode(False)
-    q_command = manager.get_joints_pos_list()
+# while sim.viewer.is_running() and loop.sleep():
+while loop.sleep() :
+
+    manager.set_mit_zero() 
+    q_real = manager.get_joints_pos_list()
+
+    # bs = np.sin(i:=i + 0.02)
+    # q_command = np.asanyarray([bs, 0.0, 0.0, 0.0, 0.0, 0.0])
     # q_command = [0.0] * 6
 
-    sim.set_q_target(np.asanyarray(q_command))
-
-    q_current = sim.get_q_current()
-
-    q_current_str = fmt_arr(q_current)
-    q_command_str = fmt_arr(q_command)
-
-    # q_current_str = ""
+    q_real_str = fmt_arr(q_real)
     # q_command_str = ""
 
-    print(f"Q: {q_command_str}, Q_current: {q_current_str}, on_time: {loop.tick.delta:.6f} {loop.tick.on_time} ")
+    # sim.step(np.asanyarray(q_command))
+    sim.set_q_target(np.asanyarray(q_real))
+
+    q_sim = sim.get_q_current()
+    q_sim_str = fmt_arr(q_sim)
+
+    # q_current_str = ""
+
+    print(f"{q_real_str=}, {q_sim_str=}, on_time: {loop.tick.delta:.6f} {loop.tick.on_time}")
 
     # if timer.done:  # 限频打印
     #     q_str = fmt_arr(q_command)
